@@ -107,11 +107,11 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {navigationItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
+                  <SidebarMenuItem key={item.href} className="">
                     <SidebarMenuButton 
                       asChild
                       className={cn(
-                        "w-full justify-start",
+                        " w-full justify-start",
                         pathname.startsWith(item.href)
                           ? "bg-muted/50 hover:bg-muted font-semibold"
                           : "hover:bg-muted"
@@ -123,7 +123,7 @@ export function AppSidebar() {
                       </Link>
                     </SidebarMenuButton>
                     {item.action && (
-                      <SidebarMenuAction asChild>
+                      <SidebarMenuAction asChild className="opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={item.action}
                           className="disabled:cursor-not-allowed text-muted-foreground hover:text-foreground"

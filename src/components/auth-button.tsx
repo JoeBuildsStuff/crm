@@ -42,7 +42,7 @@ export function AuthButton() {
   const userEmail = useCurrentUserEmail()
 
   // Check if user is authenticated
-  const isAuthenticated = userName !== 'Anonymous'
+  const isAuthenticated = userEmail !== 'Anonymous'
 
   // Get icon for current theme
   const getThemeIcon = (currentTheme: string | undefined) => {
