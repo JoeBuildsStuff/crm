@@ -51,7 +51,7 @@ export default function CompanyForm({
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <Building2 className="size-4 shrink-0" strokeWidth={1.5} />
-                    <span className="whitespace-nowrap @max-sm:hidden">Company Name</span>
+                    <span className="whitespace-nowrap @max-sm:hidden">Name</span>
                 </div>
                 <input 
                     className="w-full min-w-0 text-left hover:bg-secondary rounded-md py-2 px-2 truncate focus:outline-none focus:ring-1 focus:ring-ring" 

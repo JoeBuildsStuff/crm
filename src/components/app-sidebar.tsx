@@ -49,28 +49,28 @@ export function AppSidebar() {
 
   const navigationItems = [
     {
-      label: "Diagrams",
+      label: "Diagram",
       href: "/workspace/diagram",
       icon: Presentation,
       action: handleCreateDiagram,
       actionAriaLabel: "Create new diagram",
     },
     {
-      label: "Notes",
+      label: "Note",
       href: "/workspace/note",
       icon: FileText,
       action: handleCreateNote,
       actionAriaLabel: "Create new note",
     },
     {
-      label: "Tasks",
+      label: "Task",
       href: "/workspace/task",
       icon: ListTodo,
       action: handleCreateTask,
       actionAriaLabel: "Create new task",
     },
     {
-      label: "Meetings",
+      label: "Meeting",
       href: "/workspace/meeting",
       icon: Calendar,
       action: handleCreateMeeting,
