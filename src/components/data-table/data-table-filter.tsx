@@ -23,7 +23,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Table } from "@tanstack/react-table";
-import type { ExtendedColumnFilter, FilterVariant, FilterOperator } from "@/components/data-table/data-table";
+import type { ExtendedColumnFilter, FilterVariant, FilterOperator } from "@/lib/data-table";
 
 // Generate a random ID
 function generateId(length: number = 8): string {
