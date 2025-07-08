@@ -10,6 +10,26 @@ export type Meeting = {
   updated_at?: string;
 }
 
+export type MeetingAttendee = {
+  id: string;
+  meeting_id: string;
+  contact_id?: string;
+  external_name?: string;
+  external_email?: string;
+  attendance_status?: string;
+  is_organizer?: boolean;
+  created_at?: string;
+  contact?: {
+    id: string;
+    first_name?: string;
+    last_name?: string;
+  };
+}
+
+export type MeetingWithRelations = Meeting & {
+  attendees: MeetingAttendee[];
+}
+
 // Form-specific types (for your React component)
 export type MeetingFormData = {
   title: string;
@@ -17,6 +37,7 @@ export type MeetingFormData = {
   start_time: string;
   end_time: string;
   status: string;
+  attendees: string[];
 }
 
 // API response types

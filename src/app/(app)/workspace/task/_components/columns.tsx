@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { TaskWithRelations } from "../_lib/validations"
 import { Badge } from "@/components/ui/badge"
-import {ClipboardList, Calendar, User, GitBranch, Milestone } from "lucide-react"
+import {Calendar, User, GitBranch, Milestone, Pilcrow } from "lucide-react"
 
 export const columns: ColumnDef<TaskWithRelations>[] = [
   {
@@ -39,7 +39,7 @@ export const columns: ColumnDef<TaskWithRelations>[] = [
       <DataTableColumnHeader 
         column={column} 
         title="Description" 
-        icon={<ClipboardList className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+        icon={<Pilcrow className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
       />
     ),
     cell: ({ row }) => {

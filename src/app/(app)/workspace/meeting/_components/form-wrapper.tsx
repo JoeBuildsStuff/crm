@@ -1,12 +1,14 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import MeetingForm from "./form"
-import { Meeting } from "../_lib/validations"
+import { MeetingWithRelations } from "../_lib/validations"
 import { Button } from "@/components/ui/button"
 import { X, Plus, Save } from "lucide-react"
 import { toast } from "sonner"
+import { getAvailableContactsAction } from "../_lib/actions"
+import { Person } from "../../person/_lib/validations"
 
 interface MeetingFormData {
   title: string
@@ -14,16 +16,18 @@ interface MeetingFormData {
   start_time: string
   end_time: string
   status: string
+  attendees: string[]
 }
 
 // Helper function to transform form data to database format
-function transformFormDataToMeeting(formData: MeetingFormData): Partial<Meeting> {
+function transformFormDataToMeeting(formData: MeetingFormData): Partial<MeetingWithRelations> & { _attendees?: string[] } {
   return {
     title: formData.title,
     description: formData.description,
     start_time: formData.start_time,
     end_time: formData.end_time,
     status: formData.status,
+    _attendees: formData.attendees.filter(id => id.trim() !== ''),
   }
 }
 
@@ -35,11 +39,30 @@ export function MeetingAddForm({
 }: {
   onSuccess?: () => void
   onCancel?: () => void
-  createAction?: (data: Partial<Meeting>) => Promise<{ success: boolean; error?: string }>
+  createAction?: (data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
 }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<MeetingFormData | null>(null)
+  const [availableContacts, setAvailableContacts] = useState<Pick<Person, "id" | "first_name" | "last_name">[]>([])
+
+  useEffect(() => {
+    async function fetchContacts() {
+      try {
+        const { data, error } = await getAvailableContactsAction()
+        if (error) {
+          toast.error("Could not fetch contacts.")
+          console.error(error)
+        } else if (data) {
+          setAvailableContacts(data)
+        }
+      } catch (error) {
+        console.error("Error fetching contacts:", error)
+        toast.error("Could not fetch contacts.")
+      }
+    }
+    fetchContacts()
+  }, [])
 
   const handleFormDataChange = useCallback((data: MeetingFormData) => {
     setFormData(data)
@@ -73,6 +96,7 @@ export function MeetingAddForm({
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto p-4">
         <MeetingForm
+          availableContacts={availableContacts}
           onChange={handleFormDataChange}
         />
       </div>
@@ -106,14 +130,36 @@ export function MeetingEditForm({
   onCancel,
   updateAction
 }: {
-  data: Meeting
+  data: MeetingWithRelations
   onSuccess?: () => void
   onCancel?: () => void
-  updateAction?: (id: string, data: Partial<Meeting>) => Promise<{ success: boolean; error?: string }>
+  updateAction?: (id: string, data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
 }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<MeetingFormData | null>(null)
+  const [availableContacts, setAvailableContacts] = useState<Pick<Person, "id" | "first_name" | "last_name">[]>([])
+
+  useEffect(() => {
+    async function fetchContacts() {
+      try {
+        const { data, error } = await getAvailableContactsAction()
+        if (error) {
+          toast.error("Could not fetch contacts.")
+          console.error(error)
+        } else if (data) {
+          setAvailableContacts(data)
+        }
+      } catch (error) {
+        console.error("Error fetching contacts:", error)
+        toast.error("Could not fetch contacts.")
+      }
+    }
+    fetchContacts()
+  }, [])
+
+  // Extract initial attendees from the meeting data
+  const initialAttendees = data.attendees?.map(a => a.contact_id).filter(Boolean) as string[] || []
 
   const handleFormDataChange = useCallback((formData: MeetingFormData) => {
     setFormData(formData)
@@ -159,6 +205,8 @@ export function MeetingEditForm({
           initialStartTime={formatDateTimeLocal(data.start_time)}
           initialEndTime={formatDateTimeLocal(data.end_time)}
           initialStatus={data.status || "scheduled"}
+          initialAttendees={initialAttendees}
+          availableContacts={availableContacts}
           onChange={handleFormDataChange}
         />
       </div>
@@ -195,11 +243,30 @@ export function MeetingMultiEditForm({
   selectedCount: number
   onSuccess?: () => void
   onCancel?: () => void
-  updateActionMulti?: (ids: string[], data: Partial<Meeting>) => Promise<{ success: boolean; error?: string; updatedCount?: number }>
+  updateActionMulti?: (ids: string[], data: Record<string, unknown>) => Promise<{ success: boolean; error?: string; updatedCount?: number }>
 }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<MeetingFormData | null>(null)
+  const [availableContacts, setAvailableContacts] = useState<Pick<Person, "id" | "first_name" | "last_name">[]>([])
+
+  useEffect(() => {
+    async function fetchContacts() {
+      try {
+        const { data, error } = await getAvailableContactsAction()
+        if (error) {
+          toast.error("Could not fetch contacts.")
+          console.error(error)
+        } else if (data) {
+          setAvailableContacts(data)
+        }
+      } catch (error) {
+        console.error("Error fetching contacts:", error)
+        toast.error("Could not fetch contacts.")
+      }
+    }
+    fetchContacts()
+  }, [])
 
   const handleFormDataChange = useCallback((data: MeetingFormData) => {
     setFormData(data)
@@ -211,26 +278,14 @@ export function MeetingMultiEditForm({
     setIsSubmitting(true)
     try {
       const meetingData = transformFormDataToMeeting(formData)
-      
-      // Filter out undefined values for multi edit - only update fields that were actually modified
-      const filteredData = Object.fromEntries(
-        Object.entries(meetingData).filter(([, value]) => {
-          if (value === undefined || value === null) return false
-          if (typeof value === 'string' && value.trim() === '') return false
-          return true
-        })
-      )
-      
-      // The updateActionMulti function will be called with the selected meeting IDs
-      // by the DataTableRowEditMulti component
-      const result = await updateActionMulti([], filteredData)
+      // For multi-edit, we need to get the selected IDs from somewhere
+      // This would typically be passed down from the parent component
+      const result = await updateActionMulti([], meetingData)
       
       if (result.success) {
         router.refresh()
         onSuccess?.()
-        toast.success("Meetings updated successfully", {
-          description: `${result.updatedCount || selectedCount} meeting${(result.updatedCount || selectedCount) > 1 ? 's' : ''} updated.`
-        })
+        toast.success(`${result.updatedCount || selectedCount} meetings updated successfully`)
       } else {
         console.error("Failed to update meetings:", result.error)
         toast.error("Failed to update meetings", { description: result.error })
@@ -246,14 +301,14 @@ export function MeetingMultiEditForm({
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto p-4">
+        <div className="mb-4 p-3 bg-muted rounded-lg">
+          <p className="text-sm text-muted-foreground">
+            Editing {selectedCount} meeting{selectedCount !== 1 ? 's' : ''}. Only filled fields will be updated.
+          </p>
+        </div>
         <MeetingForm
+          availableContacts={availableContacts}
           onChange={handleFormDataChange}
-          // Start with empty values for multi edit
-          initialTitle=""
-          initialDescription=""
-          initialStartTime=""
-          initialEndTime=""
-          initialStatus="scheduled"
         />
       </div>
       
@@ -272,7 +327,7 @@ export function MeetingMultiEditForm({
           className="w-1/2"
         >
           <Save className="size-4 shrink-0" />
-          {isSubmitting ? "Updating..." : `Update ${selectedCount} Meeting${selectedCount > 1 ? 's' : ''}`}
+          {isSubmitting ? "Updating..." : `Update ${selectedCount} Meeting${selectedCount !== 1 ? 's' : ''}`}
         </Button>
       </div>
     </div>

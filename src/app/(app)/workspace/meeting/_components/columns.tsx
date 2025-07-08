@@ -3,11 +3,12 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-import { Meeting } from "../_lib/validations"
-import { Calendar, Clock, FileText, CheckCircle, CircleX, Circle, PlayCircle } from "lucide-react"
+import { MeetingWithRelations } from "../_lib/validations"
+import { Calendar, CheckCircle, CircleX, Circle, PlayCircle, Timer, Pilcrow, Type, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { format } from "date-fns"
 
-export const columns: ColumnDef<Meeting>[] = [
+export const columns: ColumnDef<MeetingWithRelations>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -38,8 +39,8 @@ export const columns: ColumnDef<Meeting>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader 
         column={column} 
-        title="Meeting Title" 
-        icon={<FileText className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+        title="Title" 
+        icon={<Type className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
       />
     ),
     cell: ({ row }) => {
@@ -63,7 +64,7 @@ export const columns: ColumnDef<Meeting>[] = [
       <DataTableColumnHeader 
         column={column} 
         title="Description" 
-        icon={<FileText className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+        icon={<Pilcrow className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
       />
     ),
     cell: ({ row }) => {
@@ -91,8 +92,8 @@ export const columns: ColumnDef<Meeting>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader 
         column={column} 
-        title="Start Time" 
-        icon={<Clock className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+        title="Date" 
+        icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
       />
     ),
     cell: ({ row }) => {
@@ -100,21 +101,11 @@ export const columns: ColumnDef<Meeting>[] = [
       if (!startTime) return <div className="text-muted-foreground">—</div>
       
       const date = new Date(startTime)
-      const formattedDate = new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }).format(date)
-      const formattedTime = new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }).format(date)
+      const formatted = format(date, "E, LLL d @ h:mm a")
       
       return (
-        <div className="text-sm">
-          <div className="font-medium">{formattedDate}</div>
-          <div className="text-muted-foreground">{formattedTime}</div>
+        <div className="text-sm font-medium">
+          {formatted}
         </div>
       )
     },
@@ -126,41 +117,100 @@ export const columns: ColumnDef<Meeting>[] = [
     enableColumnFilter: true,
   },
   {
-    accessorKey: "end_time",
+    id: "duration",
+    accessorFn: (row) => {
+      if (!row.start_time || !row.end_time) {
+        return null
+      }
+      const start = new Date(row.start_time)
+      const end = new Date(row.end_time)
+      return Math.round((end.getTime() - start.getTime()) / (1000 * 60))
+    },
     header: ({ column }) => (
       <DataTableColumnHeader 
         column={column} 
-        title="End Time" 
-        icon={<Clock className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+        title="Duration" 
+        icon={<Timer className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
       />
     ),
     cell: ({ row }) => {
-      const endTime = row.getValue("end_time") as string
-      if (!endTime) return <div className="text-muted-foreground">—</div>
+      const durationInMinutes = row.getValue("duration") as number | null
+
+      if (durationInMinutes === null || durationInMinutes < 0) {
+        return <div className="text-muted-foreground">—</div>
+      }
       
-      const date = new Date(endTime)
-      const formattedDate = new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }).format(date)
-      const formattedTime = new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }).format(date)
+      const hours = Math.floor(durationInMinutes / 60)
+      const minutes = durationInMinutes % 60
+      
+      const parts = []
+      if (hours > 0) {
+        parts.push(`${hours}h`)
+      }
+      if (minutes > 0 || hours === 0) {
+        parts.push(`${minutes}m`)
+      }
+      
+      return <div className="text-sm font-medium">{parts.join(" ")}</div>
+    },
+    meta: {
+      label: "Duration",
+      excludeFromForm: true,
+    },
+    enableSorting: true,
+  },
+  {
+    id: "attendees_count",
+    header: ({ column }) => (
+      <DataTableColumnHeader 
+        column={column} 
+        title="Attendees" 
+        icon={<Users className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+      />
+    ),
+    cell: ({ row }) => {
+      const attendees = row.original.attendees || []
+      
+      if (attendees.length === 0) {
+        return <div className="text-muted-foreground">—</div>
+      }
       
       return (
-        <div className="text-sm">
-          <div className="font-medium">{formattedDate}</div>
-          <div className="text-muted-foreground">{formattedTime}</div>
+        <div className="flex items-center gap-1 flex-wrap">
+          {attendees.map((attendee) => {
+            // Determine the display name
+            let displayName = "Unknown"
+            
+            if (attendee.contact) {
+              // Use contact information if available
+              const firstName = attendee.contact.first_name || ""
+              const lastName = attendee.contact.last_name || ""
+              displayName = `${firstName} ${lastName}`.trim() || "Unknown Contact"
+            } else if (attendee.external_name) {
+              // Use external name if no contact linked
+              displayName = attendee.external_name
+            } else if (attendee.external_email) {
+              // Use external email as fallback
+              displayName = attendee.external_email
+            }
+            
+            return (
+              <Badge 
+                key={attendee.id} 
+                variant="secondary" 
+                className="text-xs font-normal"
+              >
+                {displayName}
+              </Badge>
+            )
+          })}
         </div>
       )
     },
     meta: {
-      label: "End Time",
-      variant: "date",
-      placeholder: "Select end time...",
+      label: "Attendees",
+      variant: "multiSelect",
+      placeholder: "Select attendees...",
     },
     enableColumnFilter: true,
   },

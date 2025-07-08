@@ -1,9 +1,9 @@
 "use client";
 
-import { Clock, FileText, CheckCircle, ChevronDownIcon, Timer } from "lucide-react";
+import { Clock, FileText, CheckCircle, ChevronDownIcon, Timer, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import MultipleSelector, { Option } from "@/components/ui/multiselect";
 
 export interface MeetingFormProps {
     /**
@@ -38,6 +39,18 @@ export interface MeetingFormProps {
      */
     initialStatus?: string;
     /**
+     * Initial attendees value
+     */
+    initialAttendees?: string[];
+    /**
+     * Available contacts for attendees selection
+     */
+    availableContacts?: Array<{
+        id: string;
+        first_name?: string;
+        last_name?: string;
+    }>;
+    /**
      * Callback fired when form data changes
      */
     onChange?: (data: {
@@ -46,6 +59,7 @@ export interface MeetingFormProps {
         start_time: string;
         end_time: string;
         status: string;
+        attendees: string[];
     }) => void;
     /**
      * Custom CSS class name
@@ -59,6 +73,8 @@ export default function MeetingForm({
     initialStartTime = "",
     initialEndTime = "",
     initialStatus = "scheduled",
+    initialAttendees = [],
+    availableContacts = [],
     onChange,
     className
 }: MeetingFormProps = {}) {
@@ -67,6 +83,7 @@ export default function MeetingForm({
     const [startTime, setStartTime] = useState(initialStartTime);
     const [endTime, setEndTime] = useState(initialEndTime);
     const [status, setStatus] = useState(initialStatus);
+    const [attendees, setAttendees] = useState<string[]>(initialAttendees);
     const [duration, setDuration] = useState(() => {
         // Calculate initial duration if both start and end times are provided
         if (initialStartTime && initialEndTime) {
@@ -103,6 +120,21 @@ export default function MeetingForm({
 
     // Track which field was last updated to determine update direction
     const [lastUpdated, setLastUpdated] = useState<'start' | 'end' | 'duration'>('duration');
+
+    // Convert contacts to options for MultipleSelector
+    const contactOptions: Option[] = availableContacts.map(contact => ({
+        value: contact.id,
+        label: `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Unknown Contact'
+    }));
+
+    // Convert attendees to selected options
+    const selectedAttendeeOptions: Option[] = attendees.map(attendeeId => {
+        const contact = availableContacts.find(c => c.id === attendeeId);
+        return {
+            value: attendeeId,
+            label: contact ? `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Unknown Contact' : 'Unknown Contact'
+        };
+    });
 
     // Update datetime strings when date or time changes
     useEffect(() => {
@@ -178,6 +210,12 @@ export default function MeetingForm({
         setEndDateOpen(false);
     };
 
+    // Handle attendees change
+    const handleAttendeesChange = (selectedOptions: Option[]) => {
+        const attendeeIds = selectedOptions.map(option => option.value);
+        setAttendees(attendeeIds);
+    };
+
     // Call onChange callback when form data changes
     useEffect(() => {
         if (onChange) {
@@ -186,13 +224,16 @@ export default function MeetingForm({
                 description,
                 start_time: startTime,
                 end_time: endTime,
-                status
+                status,
+                attendees
             });
         }
-    }, [title, description, startTime, endTime, status, onChange]);
+    }, [title, description, startTime, endTime, status, attendees, onChange]);
 
     return (
-        <div className={cn("@container flex flex-col gap-2 text-foreground w-full", className)}>
+        <div className={cn("@container flex flex-col gap-4 text-foreground w-full", className)}>
+
+
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <FileText className="size-4 shrink-0" strokeWidth={1.5} />
@@ -204,6 +245,25 @@ export default function MeetingForm({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                 />
+            </div>
+
+
+            <div className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
+                    <CheckCircle className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Status</span>
+                </div>
+                <ToggleGroup 
+                    variant="outline" 
+                    type="single" 
+                    value={status} 
+                    onValueChange={(value) => value && setStatus(value)}
+                    className="flex items-center w-full text-xs"
+                >
+                    <ToggleGroupItem value="scheduled" className="text-xs">Scheduled</ToggleGroupItem>
+                    <ToggleGroupItem value="completed" className="text-xs">Completed</ToggleGroupItem>
+                    <ToggleGroupItem value="cancelled" className="text-xs">Cancelled</ToggleGroupItem>
+                </ToggleGroup>
             </div>
             
             <div className="flex items-start gap-2 justify-between">
@@ -327,23 +387,26 @@ export default function MeetingForm({
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 justify-between">
-                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
-                    <CheckCircle className="size-4 shrink-0" strokeWidth={1.5} />
-                    <span className="whitespace-nowrap @max-sm:hidden">Status</span>
+            <div className="flex items-start gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                    <Users className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Attendees</span>
                 </div>
-                <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select status..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="scheduled">Scheduled</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                </Select>
+                <div className="w-full">
+                    <MultipleSelector
+                        value={selectedAttendeeOptions}
+                        onChange={handleAttendeesChange}
+                        options={contactOptions}
+                        placeholder="Select attendees..."
+                        emptyIndicator={
+                            <p className="text-center text-sm text-muted-foreground">
+                                No contacts found.
+                            </p>
+                        }
+                    />
+                </div>
             </div>
+
         </div>
     );
 }

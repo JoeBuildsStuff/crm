@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { parseSearchParams, SearchParams } from "@/lib/data-table"
-import { TaskWithRelations } from "./validations"
+import { NoteWithRelations } from "./validations"
 import { PostgrestError } from "@supabase/supabase-js"
 import { Person } from "../../person/_lib/validations"
 import { Meeting } from "../../meeting/_lib/validations"
 
-export async function getTasks(searchParams: SearchParams): Promise<{
-  data: TaskWithRelations[],
+export async function getNotes(searchParams: SearchParams): Promise<{
+  data: NoteWithRelations[],
   count: number,
   error: PostgrestError | null
 }> {
@@ -23,8 +23,8 @@ export async function getTasks(searchParams: SearchParams): Promise<{
 
   let query = supabase
     .schema("registry")
-    .from("task")
-    .select("*, meetings(id, title), contacts!assigned_to_contact_id(id, first_name, last_name)", { count: "exact" })
+    .from("notes")
+    .select("*, meetings(id, title), contacts(id, first_name, last_name)", { count: "exact" })
 
   // Sorting
   if (sort.length > 0) {
@@ -94,7 +94,7 @@ export async function getTasks(searchParams: SearchParams): Promise<{
   const { data, count, error } = await query
 
   return {
-    data: (data as TaskWithRelations[]) || [],
+    data: (data as NoteWithRelations[]) || [],
     count: count ?? 0,
     error
   }

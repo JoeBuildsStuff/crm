@@ -12,7 +12,7 @@ export async function createTask(data: Record<string, unknown>) {
     console.log("data", data)
     const { data: newTask, error } = await supabase
       .schema("registry")
-      .from("meeting_action_items")
+      .from("task")
       .insert([data])
       .select()
       .single()
@@ -36,7 +36,7 @@ export async function updateTask(id: string, data: Record<string, unknown>) {
   try {
     const { data: updatedTask, error } = await supabase
       .schema("registry")
-      .from("meeting_action_items")
+      .from("task")
       .update(data)
       .eq("id", id)
       .select()
@@ -68,7 +68,7 @@ export async function multiUpdateTasks(taskIds: string[], data: Record<string, u
     if (Object.keys(fieldsToUpdate).length > 0) {
       const { error } = await supabase
         .schema("registry")
-        .from("meeting_action_items")
+        .from("task")
         .update(fieldsToUpdate)
         .in("id", taskIds)
       
@@ -92,7 +92,7 @@ export async function deleteTasks(taskIds: string[]) {
   try {
     const { error } = await supabase
       .schema("registry")
-      .from("meeting_action_items")
+      .from("task")
       .delete()
       .in("id", taskIds)
     

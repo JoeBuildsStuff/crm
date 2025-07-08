@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { Company } from "../_lib/validations"
 import { Building2, Pilcrow, Calendar } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 export const columns: ColumnDef<Company>[] = [
   {
@@ -45,12 +46,12 @@ export const columns: ColumnDef<Company>[] = [
       const name = row.getValue("name") as string
       return (
         <div className="flex items-center gap-2">
-          <span className="font-medium">{name || "—"}</span>
+          <Badge variant="outline" className="text-sm font-normal">{name || "—"}</Badge>
         </div>
       )
     },
     meta: {
-      label: "Company Name",
+      label: "Name",
       variant: "text",
       placeholder: "Enter company name...",
     },

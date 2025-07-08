@@ -1,13 +1,22 @@
 "use client";
 
-import { ClipboardList, Calendar, User, GitBranch, Milestone } from "lucide-react";
+import { ClipboardList, Calendar, User, GitBranch, Milestone, CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Person } from "../../person/_lib/validations";
 import { Meeting } from "../../meeting/_lib/validations";
+import {
+  Button,
+  DatePicker,
+  Dialog,
+  Group,
+  Popover,
+} from "react-aria-components";
+import { Calendar as CalendarRac } from "@/components/ui/calendar-rac";
+import { DateInput } from "@/components/ui/datefield-rac";
+import { parseDate } from "@internationalized/date";
 
 type ContactForTask = Pick<Person, "id" | "first_name" | "last_name">
 type MeetingForTask = Pick<Meeting, "id" | "title">
@@ -57,6 +66,9 @@ export default function TaskForm({
         }
     }, [description, status, dueDate, assignee, meeting, onChange]);
 
+    // Convert date string to DateValue for React Aria
+    const dueDateValue = dueDate ? parseDate(dueDate) : null;
+
     return (
         <div className={cn("@container flex flex-col gap-4 text-foreground w-full", className)}>
             <div className="flex items-start gap-2 justify-between">
@@ -94,13 +106,28 @@ export default function TaskForm({
                     <Calendar className="size-4 shrink-0" strokeWidth={1.5} />
                     <span className="whitespace-nowrap @max-sm:hidden">Due Date</span>
                 </div>
-                <Input 
-                    type="date"
-                    className="w-full min-w-0 text-left hover:bg-secondary rounded-md py-2 px-2 truncate focus:outline-none focus:ring-1 focus:ring-ring" 
-                    placeholder="Select due date..." 
-                    value={dueDate ? new Date(dueDate).toISOString().split('T')[0] : ""}
-                    onChange={(e) => setDueDate(e.target.value)}
-                />
+                <DatePicker 
+                    className="w-full"
+                    value={dueDateValue}
+                    onChange={(date) => setDueDate(date ? date.toString() : "")}
+                >
+                    <div className="flex">
+                        <Group className="w-full">
+                            <DateInput className="pe-9" />
+                        </Group>
+                        <Button className="text-muted-foreground/80 hover:text-foreground data-focus-visible:border-ring data-focus-visible:ring-ring/50 z-10 -ms-9 -me-px flex w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none data-focus-visible:ring-[3px]">
+                            <CalendarIcon size={16} />
+                        </Button>
+                    </div>
+                    <Popover
+                        className="bg-background text-popover-foreground data-entering:animate-in data-exiting:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[entering]:zoom-in-95 data-[exiting]:zoom-out-95 data-[placement=bottom]:slide-in-from-top-2 data-[placement=left]:slide-in-from-right-2 data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2 z-50 rounded-lg border shadow-lg outline-hidden"
+                        offset={4}
+                    >
+                        <Dialog className="max-h-[inherit] overflow-auto p-2">
+                            <CalendarRac />
+                        </Dialog>
+                    </Popover>
+                </DatePicker>
             </div>
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
