@@ -9,7 +9,7 @@ export default async function Page({
 
   return (
     <main className="">
-      <DataTablePerson searchParams={params} />
+        <DataTablePerson searchParams={params} />
     </main>
   )
 }

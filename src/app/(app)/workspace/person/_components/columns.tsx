@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { PersonWithRelations } from "../_lib/validations"
 import { AtSign, BriefcaseBusiness, Building2, IdCard, MapPin, Phone, Pilcrow, Calendar } from "lucide-react"
+import { formatPhoneNumber } from "react-phone-number-input"
 
 export const columns: ColumnDef<PersonWithRelations>[] = [
   {
@@ -206,9 +207,17 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
       
       if (!primaryPhone) return <div className="text-muted-foreground">—</div>
       
+      const formatPhone = (phone: string) => {
+        try {
+          return formatPhoneNumber(phone) || phone;
+        } catch {
+          return phone;
+        }
+      };
+      
       return (
         <div className="flex items-center gap-2">
-          <Badge variant="blue" className="text-sm font-normal">{primaryPhone.phone}</Badge>
+          <Badge variant="blue" className="text-sm font-normal">{formatPhone(primaryPhone.phone)}</Badge>
           {phones.length > 1 && (
             <Badge variant="gray" className="text-xs font-normal">
               +{phones.length - 1}
