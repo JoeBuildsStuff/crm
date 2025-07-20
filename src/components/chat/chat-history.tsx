@@ -1,7 +1,7 @@
 'use client'
 
 import { formatDistanceToNow } from 'date-fns'
-import { MessageSquare, Trash2, Plus, ChevronRight, MessagesSquare, History, GalleryHorizontalEnd, SquarePen } from 'lucide-react'
+import { Trash2, ChevronRight, MessagesSquare, SquarePen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
