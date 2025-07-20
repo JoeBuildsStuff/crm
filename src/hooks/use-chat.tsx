@@ -100,7 +100,8 @@ export function useChat({ onSendMessage, onActionClick }: UseChatProps = {}) {
     addMessage({
       role: 'assistant',
       content: result.message || 'I apologize, but I couldn\'t generate a response.',
-      suggestedActions: result.actions || []
+      suggestedActions: result.actions || [],
+      functionResult: result.functionResult
     })
   }, [messages, addMessage])
 

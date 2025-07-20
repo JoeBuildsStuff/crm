@@ -2,11 +2,12 @@
 
 import { formatDistanceToNow } from 'date-fns'
 import { Loader2 } from 'lucide-react'
-import { ChatMessage as ChatMessageType } from '@/types/chat'
+import { ChatMessage as ChatMessageType, ChatAction } from '@/types/chat'
 import { cn } from '@/lib/utils'
 
 interface ChatMessageProps {
   message: ChatMessageType
+  onActionClick?: (action: ChatAction) => void
 }
 
 // Loading placeholder component
@@ -29,7 +30,7 @@ export function ChatMessageLoading() {
   )
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
 
@@ -54,7 +55,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             "rounded-br-sm"
           ],
           !isUser && !isSystem && [
-            "bg-background text-foreground border border-border",
+            "bg-muted text-foreground",
             "rounded-bl-sm"
           ],
           isSystem && [
@@ -75,6 +76,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </div>
         )}
 
+        {/* Function result indicator */}
+        {message.functionResult && (
+          <div className={cn(
+            "text-xs px-2 py-1 rounded-md mt-1",
+            message.functionResult.success 
+              ? "bg-green-100 text-green-800 border border-green-200" 
+              : "bg-red-100 text-red-800 border border-red-200"
+          )}>
+            {message.functionResult.success ? '✓ Action completed' : '✗ Action failed'}
+          </div>
+        )}
+
         {/* Suggested actions */}
         {message.suggestedActions && message.suggestedActions.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
@@ -87,10 +100,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   "hover:bg-secondary/80 transition-colors",
                   "border border-border"
                 )}
-                onClick={() => {
-                  // TODO: Handle action execution
-                  console.log('Action clicked:', action)
-                }}
+                onClick={() => onActionClick?.(action)}
               >
                 {action.label}
               </button>
