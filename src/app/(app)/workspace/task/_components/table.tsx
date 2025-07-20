@@ -5,6 +5,7 @@ import { getTasks } from "../_lib/queries"
 import { deleteTasks, createTask, updateTask, multiUpdateTasks } from "../_lib/actions"
 import { TaskAddForm, TaskEditForm, TaskMultiEditForm } from "./form-wrapper"
 import { ColumnDef } from "@tanstack/react-table"
+import { TableWithPageContext } from "@/components/chat/table-with-context"
 
 interface DataTableTaskProps {
   searchParams?: SearchParams
@@ -57,6 +58,7 @@ export default async function DataTableTask({
   }>
 
   return (
+    <TableWithPageContext data={tableData} count={count ?? 0}>
       <DataTable 
         columns={tableColumns} 
         data={tableData} 
@@ -70,5 +72,6 @@ export default async function DataTableTask({
         customEditFormSingle={EditFormSingle}
         customEditFormMulti={EditFormMulti}
       />
+    </TableWithPageContext>
   )
 }

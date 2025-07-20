@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { NoteWithRelations } from "../_lib/validations"
-import {ClipboardList, User, GitBranch } from "lucide-react"
+import {ClipboardList, User, GitBranch, FileText } from "lucide-react"
 
 export const columns: ColumnDef<NoteWithRelations>[] = [
   {
@@ -31,6 +31,30 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
     meta: {
       excludeFromForm: true,
     },
+  },
+  {
+    accessorKey: "title",
+    header: ({ column }) => (
+      <DataTableColumnHeader 
+        column={column} 
+        title="Title" 
+        icon={<FileText className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+      />
+    ),
+    cell: ({ row }) => {
+      const title = row.getValue("title") as string
+      return (
+        <div className="flex items-center gap-2">
+          <span className="font-medium max-w-[400px] truncate">{title || "—"}</span>
+        </div>
+      )
+    },
+    meta: {
+      label: "Title",
+      variant: "text",
+      placeholder: "Enter note title...",
+    },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "content",

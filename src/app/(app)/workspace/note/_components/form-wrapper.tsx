@@ -17,6 +17,7 @@ type MeetingForNote = Pick<Meeting, "id" | "title">
 // Helper function to transform form data to database format
 function transformFormDataToNote(formData: NoteFormData): Partial<Note> {
   return {
+    title: formData.title || null,
     content: formData.content,
     contact_id: formData.contact_id || null,
     meeting_id: formData.meeting_id || null,
@@ -204,6 +205,7 @@ export function NoteEditForm({
       <div className="flex-1 overflow-y-auto p-4">
         <NoteForm
           initialData={{
+            title: data.title || "",
             content: data.content || "",
             contact_id: data.contact_id || "",
             meeting_id: data.meeting_id || "",

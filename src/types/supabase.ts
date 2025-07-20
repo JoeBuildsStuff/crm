@@ -241,6 +241,7 @@ export type Database = {
           created_by: string | null
           id: string
           meeting_id: string | null
+          title: string | null
           updated_at: string | null
         }
         Insert: {
@@ -250,6 +251,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           meeting_id?: string | null
+          title?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -259,6 +261,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           meeting_id?: string | null
+          title?: string | null
           updated_at?: string | null
         }
         Relationships: [

@@ -155,6 +155,7 @@ export function DataTableViewOptions<TData>({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          size="sm"
           className="flex ml-auto"
         >
           <Settings2 />

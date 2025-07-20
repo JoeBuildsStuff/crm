@@ -5,6 +5,7 @@ import { getMeetings } from "../_lib/queries"
 import { deleteMeetings, createMeeting, updateMeeting, multiUpdateMeetings } from "../_lib/actions"
 import { MeetingAddForm, MeetingEditForm, MeetingMultiEditForm } from "./form-wrapper"
 import { ColumnDef } from "@tanstack/react-table"
+import { TableWithPageContext } from "@/components/chat/table-with-context"
 
 interface DataTableMeetingProps {
   searchParams?: SearchParams
@@ -57,6 +58,7 @@ export default async function DataTableMeeting({
   }>
 
   return (
+    <TableWithPageContext data={tableData} count={count ?? 0}>
       <DataTable 
         columns={tableColumns} 
         data={tableData} 
@@ -70,5 +72,6 @@ export default async function DataTableMeeting({
         customEditFormSingle={EditFormSingle}
         customEditFormMulti={EditFormMulti}
       />
+    </TableWithPageContext>
   )
 }

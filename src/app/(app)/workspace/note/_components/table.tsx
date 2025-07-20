@@ -5,6 +5,7 @@ import { getNotes } from "../_lib/queries"
 import { deleteNotes, createNote, updateNote } from "../_lib/actions"
 import { NoteAddForm, NoteEditForm } from "./form-wrapper"
 import { ColumnDef } from "@tanstack/react-table"
+import { TableWithPageContext } from "@/components/chat/table-with-context"
 
 interface DataTableNoteProps {
   searchParams?: SearchParams
@@ -49,6 +50,7 @@ export default async function DataTableNote({
   }>
 
   return (
+    <TableWithPageContext data={tableData} count={count ?? 0}>
       <DataTable 
         columns={tableColumns} 
         data={tableData} 
@@ -60,5 +62,6 @@ export default async function DataTableNote({
         customAddForm={AddForm}
         customEditFormSingle={EditFormSingle}
       />
+    </TableWithPageContext>
   )
 }

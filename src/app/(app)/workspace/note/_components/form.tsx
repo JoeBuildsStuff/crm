@@ -1,12 +1,13 @@
 "use client";
 
-import { ClipboardList, User, GitBranch } from "lucide-react";
+import { ClipboardList, User, GitBranch, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Person } from "../../person/_lib/validations";
 import { Meeting } from "../../meeting/_lib/validations";
+import { Input } from "@/components/ui/input";
 
 type ContactForNote = Pick<Person, "id" | "first_name" | "last_name">
 type MeetingForNote = Pick<Meeting, "id" | "title">
@@ -16,8 +17,10 @@ export interface NoteFormProps {
         content?: string;
         contact_id?: string;
         meeting_id?: string;
+        title?: string;
     };
     onChange?: (data: {
+        title: string;
         content: string;
         contact_id: string;
         meeting_id: string;
@@ -37,19 +40,33 @@ export default function NoteForm({
     const [content, setContent] = useState(initialData.content || "");
     const [contact, setContact] = useState(initialData.contact_id || "");
     const [meeting, setMeeting] = useState(initialData.meeting_id || "");
+    const [title, setTitle] = useState(initialData.title || "");
 
     useEffect(() => {
         if (onChange) {
             onChange({
+                title,
                 content,
                 contact_id: contact,
                 meeting_id: meeting,
             });
         }
-    }, [content, contact, meeting, onChange]);
+    }, [title, content, contact, meeting, onChange]);
 
     return (
         <div className={cn("@container flex flex-col gap-4 text-foreground w-full", className)}>
+            <div className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                    <FileText className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Title</span>
+                </div>
+                <Input
+                     className="w-full min-w-0 text-left hover:bg-secondary rounded-md py-2 px-2 truncate focus:outline-none focus:ring-1 focus:ring-ring" 
+                     placeholder="Enter note title..."
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                />
+            </div>
             <div className="flex items-start gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
                     <ClipboardList className="size-4 shrink-0" strokeWidth={1.5} />

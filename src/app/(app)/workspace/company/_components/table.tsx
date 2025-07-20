@@ -5,6 +5,7 @@ import { getCompanies } from "../_lib/queries"
 import { deleteCompanies, createCompany, updateCompany, multiUpdateCompanies } from "../_lib/actions"
 import { CompanyAddForm, CompanyEditForm, CompanyMultiEditForm } from "./form-wrapper"
 import { ColumnDef } from "@tanstack/react-table"
+import { TableWithPageContext } from "@/components/chat/table-with-context"
 
 interface DataTableCompanyProps {
   searchParams?: SearchParams
@@ -57,6 +58,7 @@ export default async function DataTableCompany({
   }>
 
   return (
+    <TableWithPageContext data={tableData} count={count ?? 0}>
       <DataTable 
         columns={tableColumns} 
         data={tableData} 
@@ -70,5 +72,6 @@ export default async function DataTableCompany({
         customEditFormSingle={EditFormSingle}
         customEditFormMulti={EditFormMulti}
       />
+    </TableWithPageContext>
   )
 }
