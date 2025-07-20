@@ -68,7 +68,7 @@ export function ChatPanel() {
   return (
     <div 
       className={cn(
-        "z-40 bg-background border border-border shadow-2xl flex flex-col transition-all duration-300 ease-in-out",
+        "z-40 bg-background border border-border flex flex-col transition-all duration-300 ease-in-out",
         // Maximized state - takes up right side of layout
         isMaximized && [
           "fixed top-0 right-0 h-full w-96",

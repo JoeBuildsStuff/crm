@@ -2,8 +2,15 @@
 
 import { formatDistanceToNow } from 'date-fns'
 import { Loader2 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
 import { ChatMessage as ChatMessageType, ChatAction } from '@/types/chat'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+
+// Import highlight.js styles
+import 'highlight.js/styles/github-dark.css'
 
 interface ChatMessageProps {
   message: ChatMessageType
@@ -49,7 +56,7 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
         {/* Message bubble */}
         <div className={cn(
           "rounded-lg px-3 py-2 text-sm",
-          "break-words whitespace-pre-wrap",
+          "break-words",
           isUser && [
             "bg-primary text-primary-foreground",
             "rounded-br-sm"
@@ -63,7 +70,72 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
             "italic px-4 py-1 rounded-full"
           ]
         )}>
-          {message.content}
+          {isSystem ? (
+            message.content
+          ) : (
+            <div className={cn(
+              "prose prose-sm max-w-none",
+              isUser ? "prose-invert" : "dark:prose-invert",
+              // Override prose colors for user messages
+              isUser && [
+                "prose-p:text-primary-foreground",
+                "prose-ul:text-primary-foreground",
+                "prose-ol:text-primary-foreground",
+                "prose-li:text-primary-foreground",
+                "prose-h1:text-primary-foreground",
+                "prose-h2:text-primary-foreground",
+                "prose-h3:text-primary-foreground",
+                "prose-strong:text-primary-foreground",
+                "prose-em:text-primary-foreground",
+                "prose-blockquote:text-primary-foreground/80",
+                "prose-blockquote:border-primary-foreground/30",
+                "prose-hr:border-primary-foreground/20",
+                "prose-table:border-primary-foreground/20",
+                "prose-th:border-primary-foreground/20",
+                "prose-th:bg-primary-foreground/10",
+                "prose-th:text-primary-foreground",
+                "prose-td:border-primary-foreground/20",
+                "prose-td:text-primary-foreground"
+              ]
+            )}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  // Only override what's absolutely necessary
+                  code: ({ children, ...props }) => {
+                    const isInline = !props.className?.includes('language-')
+                    return isInline ? (
+                      <code className={cn(
+                        "px-1.5 py-0.5 rounded text-xs font-mono border",
+                        isUser
+                          ? "bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20"
+                          : "bg-muted/60 border-muted-foreground/20"
+                      )} {...props}>
+                        {children}
+                      </code>
+                    ) : (
+                      <code className="text-xs font-mono" {...props}>
+                        {children}
+                      </code>
+                    )
+                  },
+                  pre: ({ children }) => (
+                    <pre className={cn(
+                      "p-3 rounded-md overflow-x-auto my-2 border text-xs",
+                      isUser
+                        ? "bg-primary-foreground/10 border-primary-foreground/20"
+                        : "bg-muted/60 border-muted-foreground/20"
+                    )}>
+                      {children}
+                    </pre>
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          )}
         </div>
 
         {/* Timestamp */}
@@ -78,14 +150,12 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
 
         {/* Function result indicator */}
         {message.functionResult && (
-          <div className={cn(
-            "text-xs px-2 py-1 rounded-md mt-1",
-            message.functionResult.success 
-              ? "bg-green-100 text-green-800 border border-green-200" 
-              : "bg-red-100 text-red-800 border border-red-200"
-          )}>
+          <Badge
+            variant={message.functionResult.success ? "green" : "red"}
+            className="mt-1"
+          >
             {message.functionResult.success ? '✓ Action completed' : '✗ Action failed'}
-          </div>
+          </Badge>
         )}
 
         {/* Suggested actions */}
