@@ -87,7 +87,7 @@ export function useChat({ onSendMessage, onActionClick }: UseChatProps = {}) {
       body: JSON.stringify({
         message: content,
         context,
-        messages: messages.slice(-10) // Send last 10 messages for context
+        messages: messages
       }),
     })
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { ChatMessage, PageContext } from '@/types/chat'
 import Anthropic from '@anthropic-ai/sdk'
 import { createPerson } from '@/app/(app)/workspace/person/_lib/actions'
+import { updateNote } from '@/app/(app)/workspace/note/_lib/actions'
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -44,12 +45,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIRe
     // Build context-aware prompt
     const prompt = buildContextualPrompt(message, context || null, messages)
 
+    console.log('Prompt:', prompt)
+
     const response = await getLLMResponse(prompt)
 
     return NextResponse.json(response)
   } catch (error) {
     console.error('Chat API error:', error)
-    
+
     // More specific error handling
     if (error instanceof Error) {
       if (error.message.includes('ANTHROPIC_API_KEY')) {
@@ -58,13 +61,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIRe
           { status: 500 }
         )
       }
-      
+
       return NextResponse.json(
         { message: `Error: ${error.message}` },
         { status: 500 }
       )
     }
-    
+
     return NextResponse.json(
       { message: 'I apologize, but I encountered an error processing your request. Please try again.' },
       { status: 500 }
@@ -73,8 +76,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIRe
 }
 
 function buildContextualPrompt(
-  message: string, 
-  context: PageContext | null, 
+  message: string,
+  context: PageContext | null,
   messages: ChatMessage[]
 ): string {
   let prompt = `You are a helpful assistant for a contact management application. 
@@ -122,7 +125,7 @@ const availableFunctions: Anthropic.Tool[] = [
           description: 'First name of the person'
         },
         last_name: {
-          type: 'string', 
+          type: 'string',
           description: 'Last name of the person'
         },
         _emails: {
@@ -162,23 +165,71 @@ const availableFunctions: Anthropic.Tool[] = [
       },
       required: []
     }
+  },
+  {
+    name: 'update_note_content',
+    description: 'Update the content, title, or other fields of an existing note',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        note_id: {
+          type: 'string',
+          description: 'The ID of the note to update'
+        },
+        title: {
+          type: 'string',
+          description: 'New title for the note'
+        },
+        content: {
+          type: 'string',
+          description: 'New content for the note (HTML format supported)'
+        },
+        contact_id: {
+          type: 'string',
+          description: 'ID of the contact to associate with the note'
+        },
+        meeting_id: {
+          type: 'string',
+          description: 'ID of the meeting to associate with the note'
+        }
+      },
+      required: ['note_id']
+    }
   }
 ]
 
 async function executeFunctionCall(functionName: string, parameters: Record<string, unknown>): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
-    console.log(`Executing function: ${functionName}`, parameters)
-    
     switch (functionName) {
       case 'create_person_contact':
         // Validate required parameters
         if (!parameters.first_name && !parameters.last_name) {
           return { success: false, error: 'At least first name or last name is required' }
         }
-        
+
         const result = await createPerson(parameters)
-        console.log('Function result:', result)
         return result
+
+      case 'update_note_content':
+        // Validate required parameters
+        if (!parameters.note_id) {
+          return { success: false, error: 'Note ID is required' }
+        }
+
+        // Build update data object, only including fields that are provided
+        const updateData: Record<string, unknown> = {}
+        if (parameters.title !== undefined) updateData.title = parameters.title
+        if (parameters.content !== undefined) updateData.content = parameters.content
+        if (parameters.contact_id !== undefined) updateData.contact_id = parameters.contact_id
+        if (parameters.meeting_id !== undefined) updateData.meeting_id = parameters.meeting_id
+
+        if (Object.keys(updateData).length === 0) {
+          return { success: false, error: 'At least one field to update is required' }
+        }
+
+        const updateResult = await updateNote(parameters.note_id as string, updateData)
+        return updateResult
+
       default:
         return { success: false, error: `Unknown function: ${functionName}` }
     }
@@ -203,15 +254,27 @@ async function getLLMResponse(prompt: string): Promise<ChatAPIResponse> {
           role: 'user',
           content: `${prompt}
 
-You are a helpful assistant for a contact management application. You can help users manage their contacts by filtering, sorting, navigating, and creating new person contacts.
+You are a helpful assistant for a contact management application. You can help users manage their contacts, notes, and other data by filtering, sorting, navigating, creating new contacts, and updating note content.
+
+Available functions:
+- create_person_contact: Create new person contacts with their information
+- update_note_content: Update existing notes' title, content, or associations
 
 When users ask to create or add a new person contact, use the create_person_contact function with the provided information. Extract as much relevant information as possible from the user's request.
+
+When users ask to update, modify, edit, or change note content, title, or associations, use the update_note_content function. You can update:
+- Note content (the main text/HTML content)
+- Note title
+- Associated contact (contact_id)
+- Associated meeting (meeting_id)
 
 For other requests, provide helpful responses and suggest specific actions when appropriate.
 
 Guidelines:
-- Use the create_person_contact function when users want to add new contacts
+- Use create_person_contact function when users want to add new contacts
+- Use update_note_content function when users want to modify existing notes
 - Extract information like name, email, phone, company, job title, location from user requests
+- For note updates, identify the note ID from context and the fields to update
 - For filters: suggest filter actions with columnId, operator, and value
 - For sorting: suggest sort actions with columnId and direction  
 - For navigation: suggest navigate actions with pathname
@@ -224,7 +287,7 @@ Guidelines:
     const toolUse = response.content.find(content => content.type === 'tool_use')
     if (toolUse && toolUse.type === 'tool_use') {
       const functionResult = await executeFunctionCall(toolUse.name, toolUse.input as Record<string, unknown>)
-      
+
       // Get the follow-up response after function execution with proper tool_result
       const followUpResponse = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
@@ -251,13 +314,13 @@ Guidelines:
         ],
       })
 
-      const followUpContent = followUpResponse.content[0]?.type === 'text' 
-        ? followUpResponse.content[0].text 
+      const followUpContent = followUpResponse.content[0]?.type === 'text'
+        ? followUpResponse.content[0].text
         : ''
 
       return {
-        message: followUpContent || (functionResult.success 
-          ? 'Contact created successfully!' 
+        message: followUpContent || (functionResult.success
+          ? 'Contact created successfully!'
           : `Failed to create contact: ${functionResult.error}`),
         functionResult,
         actions: []
@@ -265,8 +328,8 @@ Guidelines:
     }
 
     // Handle regular text response
-    const content = response.content[0]?.type === 'text' 
-      ? response.content[0].text 
+    const content = response.content[0]?.type === 'text'
+      ? response.content[0].text
       : ''
 
     return {
