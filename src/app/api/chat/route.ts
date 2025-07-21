@@ -290,16 +290,17 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
             type: "text_editor_20250429",
             name: "str_replace_based_edit_tool"
           },
-          // {
-          //   type: "web_search_20250305",
-          //   name: "web_search",
-          //   max_uses: 5
-          // }
+          {
+            type: "web_search_20250305",
+            name: "web_search",
+            max_uses: 5
+          }
         ],
         messages: conversationMessages,
       })
 
       console.log(`📨 Received response from Claude (iteration ${iteration})`)
+
 
       // Log chain of thought if present
       const textBlocks = response.content.filter(content => content.type === 'text')
@@ -321,7 +322,11 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
       if (toolUses.length === 0) {
         // No more tools to execute, return the final response
         console.log('✅ Claude provided final response (no more tools)')
-        const content = response.content.find(c => c.type === 'text')?.text || ''
+        
+        // TODO: There is much more content in the response including citations and urls and link Agent, etc that we should incorporate in the client.
+        // Concatenate all text blocks to get the complete response
+        const textBlocks = response.content.filter(c => c.type === 'text')
+        const content = textBlocks.map(block => block.text).join('\n\n')
         
         return {
           message: content || 'Operation completed successfully!',
@@ -355,21 +360,43 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
           console.log('Full toolUse:', JSON.stringify(toolUse, null, 2))
           
           try {
-            const input = toolUse.input as Record<string, unknown>
-            const command = input.command as string
-            const path = input.path as string
-            
-            const toolResult = await handleNoteEditorOperation(command, path, input)
-            console.log(`✅ Tool executed successfully: ${command} on ${path}`)
-            
-            // Track this operation
-            allToolResults.push({ operation: command, path, result: toolResult })
-            
-            toolResults.push({
-              type: 'tool_result',
-              tool_use_id: toolUse.id,
-              content: toolResult
-            })
+            if (toolUse.name === 'str_replace_based_edit_tool') {
+              const input = toolUse.input as Record<string, unknown>
+              const command = input.command as string
+              const path = input.path as string
+              
+              const toolResult = await handleNoteEditorOperation(command, path, input)
+              console.log(`✅ Tool executed successfully: ${command} on ${path}`)
+              
+              // Track this operation
+              allToolResults.push({ operation: command, path, result: toolResult })
+              
+              toolResults.push({
+                type: 'tool_result',
+                tool_use_id: toolUse.id,
+                content: toolResult
+              })
+            } else if (toolUse.name === 'web_search') {
+              // Web search tool results are handled automatically by Anthropic
+              // We just need to track that a web search was performed
+              console.log(`🌐 Web search performed: ${JSON.stringify(toolUse.input)}`)
+              allToolResults.push({ 
+                operation: 'web_search', 
+                path: 'web', 
+                result: 'Web search completed by Anthropic' 
+              })
+              
+              // Note: Web search results are automatically included in the response
+              // by Anthropic, so we don't need to add anything to toolResults
+            } else {
+              console.log(`❌ Unknown tool: ${toolUse.name}`)
+              toolResults.push({
+                type: 'tool_result',
+                tool_use_id: toolUse.id,
+                content: `Error: Unknown tool ${toolUse.name}`,
+                is_error: true
+              })
+            }
           } catch (error) {
             console.error(`💥 Tool execution failed:`, error)
             
