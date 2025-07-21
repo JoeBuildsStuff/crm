@@ -7,9 +7,10 @@ import { Note, NoteFormData, NoteWithRelations } from "../_lib/validations"
 import { Button } from "@/components/ui/button"
 import { X, Plus, Save } from "lucide-react"
 import { toast } from "sonner"
-import { getAssignableContacts, getLinkableMeetings } from "../_lib/actions"
+import { getAssignableContacts, getLinkableMeetings, getAvailableCompanies } from "../_lib/actions"
 import { Person } from "../../person/_lib/validations"
 import { Meeting } from "../../meeting/_lib/validations"
+import { Company } from "../../company/_lib/validations"
 
 type ContactForNote = Pick<Person, "id" | "first_name" | "last_name">
 type MeetingForNote = Pick<Meeting, "id" | "title">
@@ -39,12 +40,15 @@ export function NoteAddForm({
   const [formData, setFormData] = useState<NoteFormData | null>(null)
   const [contacts, setContacts] = useState<ContactForNote[]>([])
   const [meetings, setMeetings] = useState<MeetingForNote[]>([])
+  const [companies, setCompanies] = useState<Company[]>([])
 
   useEffect(() => {
     async function fetchData() {
-      const [contactsRes, meetingsRes] = await Promise.all([
+
+      const [contactsRes, meetingsRes, companiesRes] = await Promise.all([
         getAssignableContacts(),
-        getLinkableMeetings()
+        getLinkableMeetings(),
+        getAvailableCompanies()
       ]);
 
       if (contactsRes.error) {
@@ -59,6 +63,13 @@ export function NoteAddForm({
         console.error(meetingsRes.error)
       } else if (meetingsRes.data) {
         setMeetings(meetingsRes.data)
+      }
+
+      if (companiesRes.error) {
+        toast.error("Could not fetch companies.")
+        console.error(companiesRes.error)
+      } else if (companiesRes.data) {
+        setCompanies(companiesRes.data)
       }
     }
     fetchData()
@@ -105,6 +116,7 @@ export function NoteAddForm({
           onChange={handleFormDataChange}
           availableContacts={contacts}
           availableMeetings={meetings}
+          availableCompanies={companies}
         />
       </div>
       
@@ -147,12 +159,14 @@ export function NoteEditForm({
   const [formData, setFormData] = useState<NoteFormData | null>(null)
   const [contacts, setContacts] = useState<ContactForNote[]>([])
   const [meetings, setMeetings] = useState<MeetingForNote[]>([])
+  const [companies, setCompanies] = useState<Company[]>([])
 
   useEffect(() => {
     async function fetchData() {
-      const [contactsRes, meetingsRes] = await Promise.all([
+      const [contactsRes, meetingsRes, companiesRes] = await Promise.all([
         getAssignableContacts(),
-        getLinkableMeetings()
+        getLinkableMeetings(),
+        getAvailableCompanies()
       ]);
 
       if (contactsRes.error) {
@@ -167,6 +181,13 @@ export function NoteEditForm({
         console.error(meetingsRes.error)
       } else if (meetingsRes.data) {
         setMeetings(meetingsRes.data)
+      }
+
+      if (companiesRes.error) {
+        toast.error("Could not fetch companies.")
+        console.error(companiesRes.error)
+      } else if (companiesRes.data) {
+        setCompanies(companiesRes.data)
       }
     }
     fetchData()
@@ -213,6 +234,7 @@ export function NoteEditForm({
           onChange={handleFormDataChange}
           availableContacts={contacts}
           availableMeetings={meetings}
+          availableCompanies={companies}
         />
       </div>
       

@@ -324,7 +324,7 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
   },
   {
     accessorKey: "updated_at",
-  header: ({ column }) => <DataTableColumnHeader column={column} title="Updated" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}  />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Updated" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}  />,
     cell: ({ row }) => {
       const updatedAt = row.getValue("updated_at") as string
       if (!updatedAt) return <div className="text-muted-foreground">—</div>

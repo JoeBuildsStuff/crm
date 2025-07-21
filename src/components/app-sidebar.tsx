@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Building2, Calendar, Presentation, FileText, ListTodo, Plus, Users } from "lucide-react"
+import { Building2, Calendar, Presentation, File, ListTodo, Plus, Users } from "lucide-react"
 import { SidebarLogo } from "./app-sidebar-logo"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -49,34 +49,6 @@ export function AppSidebar() {
 
   const navigationItems = [
     {
-      label: "Diagram",
-      href: "/workspace/diagram",
-      icon: Presentation,
-      action: handleCreateDiagram,
-      actionAriaLabel: "Create new diagram",
-    },
-    {
-      label: "Note",
-      href: "/workspace/note",
-      icon: FileText,
-      action: handleCreateNote,
-      actionAriaLabel: "Create new note",
-    },
-    {
-      label: "Task",
-      href: "/workspace/task",
-      icon: ListTodo,
-      action: handleCreateTask,
-      actionAriaLabel: "Create new task",
-    },
-    {
-      label: "Meeting",
-      href: "/workspace/meeting",
-      icon: Calendar,
-      action: handleCreateMeeting,
-      actionAriaLabel: "Create new meeting",
-    },
-    {
       label: "Person",
       href: "/workspace/person",
       icon: Users,
@@ -89,6 +61,34 @@ export function AppSidebar() {
       icon: Building2,
       action: handleCreateCompany,
       actionAriaLabel: "Create new company",
+    },
+    {
+      label: "Meeting",
+      href: "/workspace/meeting",
+      icon: Calendar,
+      action: handleCreateMeeting,
+      actionAriaLabel: "Create new meeting",
+    },
+    {
+      label: "Note",
+      href: "/workspace/note",
+      icon: File,
+      action: handleCreateNote,
+      actionAriaLabel: "Create new note",
+    },
+    {
+      label: "Task",
+      href: "/workspace/task",
+      icon: ListTodo,
+      action: handleCreateTask,
+      actionAriaLabel: "Create new task",
+    },
+    {
+      label: "Diagram",
+      href: "/workspace/diagram",
+      icon: Presentation,
+      action: handleCreateDiagram,
+      actionAriaLabel: "Create new diagram",
     },
   ]
 

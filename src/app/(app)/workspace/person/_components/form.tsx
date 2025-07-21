@@ -2,13 +2,13 @@
 
 import { Input } from "@/components/ui/input";
 import PhoneInputComponent from "@/components/ui/input-phone";
-import { AtSign, BriefcaseBusiness, Building2, GripVertical, IdCard, MapPin, Phone, Pilcrow, Plus, X, Check } from "lucide-react";
+import { AtSign, BriefcaseBusiness, Building2, GripVertical, IdCard, MapPin, Phone, Pilcrow, Plus, X } from "lucide-react";
 import { formatPhoneNumber } from "react-phone-number-input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState, useEffect, forwardRef, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import  SelectSearchable from "@/components/ui/select-searchable";
 import { cn } from "@/lib/utils";
 import {
     DndContext,
@@ -34,7 +34,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Company } from '../_lib/validations';
 import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface PersonFormProps {
     /**
@@ -241,7 +240,6 @@ export default function PersonForm({
     const [city, setCity] = useState(initialCity);
     const [state, setState] = useState(initialState);
     const [company, setCompany] = useState(initialCompany);
-    const [companyOpen, setCompanyOpen] = useState(false);
     const [addCompanyDialogOpen, setAddCompanyDialogOpen] = useState(false);
     const [newCompanyName, setNewCompanyName] = useState("");
     const [newCompanyDescription, setNewCompanyDescription] = useState("");
@@ -269,6 +267,13 @@ export default function PersonForm({
     useEffect(() => {
         setCompanies(availableCompanies || [])
     }, [availableCompanies])
+
+    // Transform companies for SelectSearchable
+    const companyOptions = companies.map(c => ({
+        id: c.name, // Using name as id since that's what the form expects
+        label: c.name,
+        searchValue: c.name
+    }));
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -436,7 +441,6 @@ export default function PersonForm({
             setNewCompanyName("");
             setNewCompanyDescription("");
             setAddCompanyDialogOpen(false);
-            setCompanyOpen(false);
         }
     };
 
@@ -610,65 +614,19 @@ export default function PersonForm({
                     <Building2 className="size-4 shrink-0" strokeWidth={1.5} />
                     <span className="whitespace-nowrap @max-sm:hidden">Company</span>
                 </div>
-                <div className="w-full min-w-0">
-                    <Popover open={companyOpen} onOpenChange={setCompanyOpen}>
-                        <PopoverTrigger className={cn(
-                            "w-full text-left hover:bg-secondary rounded-md py-2 px-2 truncate",
-                            !company && "text-muted-foreground/80"
-                        )}>
-                            {company ? <Badge variant="outline" className="text-sm">{company}</Badge> : "Set Company..."}
-                        </PopoverTrigger>
-                        <PopoverContent 
-                            className="p-0 rounded-xl" 
-                            align="start"
-                            onKeyDown={(e) => handlePopoverKeyDown(e, () => setCompanyOpen(false))}
-                        >
-                            <Command className="w-full rounded-xl">
-                                <CommandInput placeholder="Search companies..." />
-                                <ScrollArea className="h-60 pr-2">
-                                    <CommandList className="max-h-none overflow-hidden">
-                                        <CommandEmpty>No company found.</CommandEmpty>
-                                        <CommandGroup>
-                                            {companies.map((companyData) => (
-                                                <CommandItem
-                                                    key={companyData.id}
-                                                    value={companyData.name}
-                                                    onSelect={(currentValue) => {
-                                                        setCompany(company === currentValue ? "" : currentValue);
-                                                        setCompanyOpen(false);
-                                                    }}
-                                                >
-                                                    <Check
-                                                        className={cn(
-                                                            "mr-2 h-4 w-4",
-                                                            company === companyData.name ? "opacity-100" : "opacity-0"
-                                                        )}
-                                                    />
-                                                    {companyData.name}
-                                                </CommandItem>
-                                            ))}
-                                        </CommandGroup>
-                                    </CommandList>
-                                </ScrollArea>
-                                <CommandSeparator />
-                                <div className="p-1 h-9">
-                                    <Button 
-                                        variant="secondary" 
-                                        size="sm"
-                                        className="w-full h-full justify-start rounded-t-none text-muted-foreground"
-                                        onClick={() => {
-                                            setCompanyOpen(false);
-                                            setAddCompanyDialogOpen(true);
-                                        }}
-                                    >
-                                        <Plus className="size-4 shrink-0" strokeWidth={1.5} />
-                                        <span className="text-xs">Add Company</span>
-                                    </Button>
-                                </div>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
-                </div>
+                <SelectSearchable
+                    value={company}
+                    onValueChange={setCompany}
+                    options={companyOptions}
+                    placeholder="Set Company..."
+                    searchPlaceholder="Search companies..."
+                    emptyText="No company found."
+                    showBadge={true}
+                    badgeVariant="outline"
+                    allowCreate={true}
+                    createText="Add Company"
+                    onCreateClick={() => setAddCompanyDialogOpen(true)}
+                />
             </div>
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">

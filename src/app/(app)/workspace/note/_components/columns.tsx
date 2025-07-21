@@ -4,7 +4,9 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { NoteWithRelations } from "../_lib/validations"
-import {ClipboardList, User, GitBranch, FileText } from "lucide-react"
+import { User, ArrowUpRight, Type, Pilcrow, Calendar } from "lucide-react"
+import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 
 export const columns: ColumnDef<NoteWithRelations>[] = [
   {
@@ -38,14 +40,21 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
       <DataTableColumnHeader 
         column={column} 
         title="Title" 
-        icon={<FileText className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+        icon={<Type className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
       />
     ),
     cell: ({ row }) => {
       const title = row.getValue("title") as string
       return (
         <div className="flex items-center gap-2">
-          <span className="font-medium max-w-[400px] truncate">{title || "—"}</span>
+          <Link 
+            href={`/workspace/note/${row.original.id}`}
+            className="hover:underline cursor-pointer"
+          >
+            <span className="flex items-center gap-1">
+              {title || "Untitled Note"} <ArrowUpRight className="size-4" strokeWidth={1.5} />
+            </span>
+          </Link>
         </div>
       )
     },
@@ -62,7 +71,7 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
       <DataTableColumnHeader 
         column={column} 
         title="Content" 
-        icon={<ClipboardList className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+        icon={<Pilcrow className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
       />
     ),
     cell: ({ row }) => {
@@ -82,7 +91,7 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
   },
   {
     id: "meeting",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Meeting" icon={<GitBranch className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Meeting" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
     cell: ({ row }) => {
       const meeting = row.original.meetings
       return <div className="text-sm text-muted-foreground">{meeting?.title || "—"}</div>
@@ -102,7 +111,7 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
       const contact = row.original.contacts
       if (!contact || (!contact.first_name && !contact.last_name)) return <div className="text-muted-foreground">—</div>
       const fullName = `${contact.first_name || ""} ${contact.last_name || ""}`.trim()
-      return <div className="text-sm text-muted-foreground">{fullName || "—"}</div>
+      return <Badge variant="blue" className="text-sm font-normal">{fullName || "—"}</Badge>
     },
     accessorKey: "contact_id",
     meta: {
@@ -111,5 +120,51 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
       // This would need to be populated from a query
       options: [],
     },
+  },
+  {
+    accessorKey: "created_at",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Created" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
+    cell: ({ row }) => {
+      const createdAt = row.getValue("created_at") as string
+      if (!createdAt) return <div className="text-muted-foreground">—</div>
+      
+      const date = new Date(createdAt)
+      const formatted = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(date)
+      
+      return <div className="text-sm text-muted-foreground">{formatted}</div>
+    },
+    meta: {
+      label: "Created",
+      variant: "date",
+      readOnly: true,
+    },
+    enableColumnFilter: true,
+  },
+  {
+    accessorKey: "updated_at",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Updated" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}  />,
+    cell: ({ row }) => {
+      const updatedAt = row.getValue("updated_at") as string
+      if (!updatedAt) return <div className="text-muted-foreground">—</div>
+      
+      const date = new Date(updatedAt)
+      const formatted = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(date)
+      
+      return <div className="text-sm text-muted-foreground">{formatted}</div>
+    },
+    meta: {
+      label: "Updated",
+      variant: "date",
+      readOnly: true,
+    },
+    enableColumnFilter: true,
   },
 ]

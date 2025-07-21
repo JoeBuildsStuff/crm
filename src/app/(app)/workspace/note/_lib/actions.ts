@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { getAssignableContacts as dbGetAssignableContacts, getLinkableMeetings as dbGetLinkableMeetings } from "./queries"
+import { getAssignableContacts as dbGetAssignableContacts, getLinkableMeetings as dbGetLinkableMeetings, getAvailableCompanies as dbGetAvailableCompanies } from "./queries"
 
 export async function createNote(data: Record<string, unknown>) {
   const supabase = await createClient()
@@ -82,4 +82,8 @@ export async function getAssignableContacts() {
 
 export async function getLinkableMeetings() {
   return await dbGetLinkableMeetings()
+}
+
+export async function getAvailableCompanies() {
+  return await dbGetAvailableCompanies()
 }

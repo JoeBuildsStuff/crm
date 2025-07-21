@@ -4,6 +4,7 @@ import { NoteWithRelations } from "./validations"
 import { PostgrestError } from "@supabase/supabase-js"
 import { Person } from "../../person/_lib/validations"
 import { Meeting } from "../../meeting/_lib/validations"
+import { Company } from "../../company/_lib/validations"
 
 export async function getNotes(searchParams: SearchParams): Promise<{
   data: NoteWithRelations[],
@@ -28,7 +29,7 @@ export async function getNotes(searchParams: SearchParams): Promise<{
 
   // Sorting
   if (sort.length > 0) {
-    sort.forEach(s => {
+    sort.forEach((s: { id: string; desc: boolean }) => {
       query = query.order(s.id, { ascending: !s.desc })
     })
   } else {
@@ -36,7 +37,7 @@ export async function getNotes(searchParams: SearchParams): Promise<{
   }
 
   // Filtering
-  filters.forEach(filter => {
+  filters.forEach((filter: { id: string; value: unknown }) => {
     const { id: columnId, value: filterValue } = filter
     if (typeof filterValue === 'object' && filterValue !== null && 'operator' in filterValue) {
       const { operator, value } = filterValue as { operator: string, value: unknown }
@@ -100,6 +101,25 @@ export async function getNotes(searchParams: SearchParams): Promise<{
   }
 }
 
+export async function getNote(id: string): Promise<{
+  data: NoteWithRelations | null,
+  error: PostgrestError | null
+}> {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase
+    .schema("registry")
+    .from("notes")
+    .select("*, meetings(id, title), contacts(id, first_name, last_name)")
+    .eq("id", id)
+    .single()
+
+  return {
+    data: data as NoteWithRelations | null,
+    error
+  }
+}
+
 
 export async function getAssignableContacts(): Promise<{
   data: Pick<Person, "id" | "first_name" | "last_name">[],
@@ -126,6 +146,20 @@ export async function getLinkableMeetings(): Promise<{
         .from("meetings")
         .select("id, title")
         .order("title", { ascending: true })
+    
+    return { data: data ?? [], error }
+}
+
+export async function getAvailableCompanies(): Promise<{
+  data: Pick<Company, "id" | "name">[],
+  error: PostgrestError | null
+}> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .schema("registry")
+        .from("companies")
+        .select("id, name")
+        .order("name", { ascending: true })
     
     return { data: data ?? [], error }
 }

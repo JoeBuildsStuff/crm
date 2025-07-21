@@ -122,6 +122,10 @@
   }
 }
 
+.ProseMirror:focus {
+  outline: none;
+}
+
 /* Custom styles for code highlighting in chat messages */
 .dark .hljs {
   background: hsl(var(--muted)) !important;
