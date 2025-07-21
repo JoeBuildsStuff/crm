@@ -1,8 +1,10 @@
+// TODO: Get rid of all the logs and figure out pasing progress and thinking to the client.
+
 import { NextRequest, NextResponse } from 'next/server'
 import type { ChatMessage, PageContext } from '@/types/chat'
 import Anthropic from '@anthropic-ai/sdk'
-import { createPerson } from '@/app/(app)/workspace/person/_lib/actions'
-import { updateNote } from '@/app/(app)/workspace/note/_lib/actions'
+import { updateNote, createNote } from '@/app/(app)/workspace/note/_lib/actions'
+import { getNote, getNotes } from '@/app/(app)/workspace/note/_lib/queries'
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -31,11 +33,17 @@ interface ChatAPIResponse {
 
 export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIResponse>> {
   try {
+    console.log('🚀 Chat API: Processing new request')
     const body: ChatAPIRequest = await request.json()
     const { message, context, messages = [] } = body
 
+    console.log('📝 User message:', message)
+    console.log('📊 Context available:', !!context)
+    console.log('💬 Message history length:', messages.length)
+
     // Validate input
     if (!message || typeof message !== 'string') {
+      console.log('❌ Invalid message content received')
       return NextResponse.json(
         { message: 'Invalid message content' },
         { status: 400 }
@@ -45,29 +53,33 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIRe
     // Build context-aware prompt
     const prompt = buildContextualPrompt(message, context || null, messages)
 
-    console.log('Prompt:', prompt)
+    console.log('🎯 Built prompt for AI')
 
-    const response = await getLLMResponse(prompt)
+    const response = await getLLMResponse(prompt, messages)
 
+    console.log('✅ AI response generated successfully')
     return NextResponse.json(response)
   } catch (error) {
-    console.error('Chat API error:', error)
+    console.error('💥 Chat API error:', error)
 
     // More specific error handling
     if (error instanceof Error) {
       if (error.message.includes('ANTHROPIC_API_KEY')) {
+        console.log('🔑 API key configuration error')
         return NextResponse.json(
           { message: 'AI service is not configured. Please check the API key.' },
           { status: 500 }
         )
       }
 
+      console.log('❌ Error details:', error.message)
       return NextResponse.json(
         { message: `Error: ${error.message}` },
         { status: 500 }
       )
     }
 
+    console.log('❌ Unknown error occurred')
     return NextResponse.json(
       { message: 'I apologize, but I encountered an error processing your request. Please try again.' },
       { status: 500 }
@@ -80,8 +92,15 @@ function buildContextualPrompt(
   context: PageContext | null,
   messages: ChatMessage[]
 ): string {
-  let prompt = `You are a helpful assistant for a contact management application. 
+  let prompt = `You are a helpful assistant for a contact management application with note-taking capabilities.
 The user is asking: "${message}"
+
+You can edit note contents using the text editor tool. When working with notes:
+- Use note IDs as file paths (e.g., "note-123" or just "123")
+- Use "notes" to list all available notes
+- The content is stored as HTML from a rich text editor (Tiptap)
+- You can view, edit, create, and modify note content directly
+- You can perform multiple operations in sequence (e.g., view a note, edit it, then view it again)
 
 `
 
@@ -93,7 +112,6 @@ The user is asking: "${message}"
 - Visible data sample: ${JSON.stringify(context.visibleData.slice(0, 3), null, 2)}
 
 `
-
   } else {
     prompt += `No current page context available.
 
@@ -107,237 +125,308 @@ ${messages.slice(-5).map(msg => `${msg.role}: ${msg.content}`).join('\n')}
 `
   }
 
-  prompt += `Please provide a helpful response. If you can suggest specific filters, sorts, or actions based on the context, include them in your response. Focus on helping the user work with their data.`
+  prompt += `Please provide a helpful response. You can directly edit note contents using the text editor tool when users ask to modify, update, or create notes.`
 
   return prompt
 }
 
-// Define available functions for the LLM
-const availableFunctions: Anthropic.Tool[] = [
-  {
-    name: 'create_person_contact',
-    description: 'Create a new person contact in the database with their information including name, emails, phones, company, and other details',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        first_name: {
-          type: 'string',
-          description: 'First name of the person'
-        },
-        last_name: {
-          type: 'string',
-          description: 'Last name of the person'
-        },
-        _emails: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of email addresses for the person'
-        },
-        _phones: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of phone numbers for the person'
-        },
-        company_name: {
-          type: 'string',
-          description: 'Name of the company the person works for (will be created if it doesn\'t exist)'
-        },
-        job_title: {
-          type: 'string',
-          description: 'Job title or position of the person'
-        },
-        city: {
-          type: 'string',
-          description: 'City where the person is located'
-        },
-        state: {
-          type: 'string',
-          description: 'State where the person is located'
-        },
-        linkedin: {
-          type: 'string',
-          description: 'LinkedIn profile URL'
-        },
-        description: {
-          type: 'string',
-          description: 'Additional notes or description about the person'
-        }
-      },
-      required: []
-    }
-  },
-  {
-    name: 'update_note_content',
-    description: 'Update the content, title, or other fields of an existing note',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        note_id: {
-          type: 'string',
-          description: 'The ID of the note to update'
-        },
-        title: {
-          type: 'string',
-          description: 'New title for the note'
-        },
-        content: {
-          type: 'string',
-          description: 'New content for the note (HTML format supported)'
-        },
-        contact_id: {
-          type: 'string',
-          description: 'ID of the contact to associate with the note'
-        },
-        meeting_id: {
-          type: 'string',
-          description: 'ID of the meeting to associate with the note'
-        }
-      },
-      required: ['note_id']
-    }
-  }
-]
-
-async function executeFunctionCall(functionName: string, parameters: Record<string, unknown>): Promise<{ success: boolean; data?: unknown; error?: string }> {
+// Handle text editor tool operations for notes
+async function handleNoteEditorOperation(
+  command: string,
+  path: string,
+  options: Record<string, unknown> = {}
+): Promise<string> {
+  console.log('🔧 Note Editor Operation:', { command, path, options })
+  
   try {
-    switch (functionName) {
-      case 'create_person_contact':
-        // Validate required parameters
-        if (!parameters.first_name && !parameters.last_name) {
-          return { success: false, error: 'At least first name or last name is required' }
+    switch (command) {
+      case 'view':
+        if (path === 'notes' || path === '.') {
+          console.log('📋 Listing all notes')
+          const { data: notes, error } = await getNotes({})
+          if (error) throw new Error(error.message || 'Unknown database error')
+          
+          console.log(`📝 Found ${notes.length} notes`)
+          return notes.map((note, index) => 
+            `${index + 1}: ${note.id} - ${note.title || 'Untitled'} (${note.content?.substring(0, 50) || 'No content'}...)`
+          ).join('\n') || 'No notes found.'
+        } else {
+          const noteId = path.replace(/^note-/, '')
+          console.log(`👁️ Viewing note: ${noteId}`)
+          const { data: note, error } = await getNote(noteId)
+          if (error) throw new Error(error.message || 'Unknown database error')
+          if (!note) throw new Error('File not found')
+          
+          console.log(`📄 Note content length: ${(note.content || '').length} characters`)
+          const lines = (note.content || '').split('\n')
+          return lines.map((line, index) => `${index + 1}: ${line}`).join('\n')
         }
 
-        const result = await createPerson(parameters)
-        return result
-
-      case 'update_note_content':
-        // Validate required parameters
-        if (!parameters.note_id) {
-          return { success: false, error: 'Note ID is required' }
+      case 'str_replace':
+        const noteId = path.replace(/^note-/, '')
+        const { old_str, new_str } = options as { old_str: string; new_str: string }
+        
+        console.log(`🔄 Text replacement in note ${noteId}: "${old_str}" → "${new_str}"`)
+        
+        if (!old_str || new_str === undefined) {
+          throw new Error('old_str and new_str are required for str_replace')
         }
 
-        // Build update data object, only including fields that are provided
-        const updateData: Record<string, unknown> = {}
-        if (parameters.title !== undefined) updateData.title = parameters.title
-        if (parameters.content !== undefined) updateData.content = parameters.content
-        if (parameters.contact_id !== undefined) updateData.contact_id = parameters.contact_id
-        if (parameters.meeting_id !== undefined) updateData.meeting_id = parameters.meeting_id
+        const { data: note, error: fetchError } = await getNote(noteId)
+        if (fetchError) throw new Error(fetchError.message || 'Unknown database error')
+        if (!note) throw new Error('File not found')
 
-        if (Object.keys(updateData).length === 0) {
-          return { success: false, error: 'At least one field to update is required' }
+        const content = note.content || ''
+        const matches = content.split(old_str).length - 1
+        
+        console.log(`🔍 Found ${matches} matches for replacement text`)
+        
+        if (matches === 0) {
+          throw new Error('No match found for replacement. Please check your text and try again.')
+        }
+        if (matches > 1) {
+          throw new Error(`Found ${matches} matches for replacement text. Please provide more context to make a unique match.`)
         }
 
-        const updateResult = await updateNote(parameters.note_id as string, updateData)
-        return updateResult
+        const newContent = content.replace(old_str, new_str)
+        console.log(`💾 Updating note ${noteId} with new content`)
+        const { error: updateError } = await updateNote(noteId, { content: newContent })
+        if (updateError) throw new Error(updateError)
+
+        console.log('✅ Text replacement completed successfully')
+        return 'Successfully replaced text at exactly one location.'
+
+      case 'create':
+        const { file_text } = options as { file_text: string }
+        const title = path.replace(/^note-/, '').replace(/\.(txt|md|html)$/, '') || undefined
+        
+        console.log(`📝 Creating new note: "${title || 'Untitled'}"`)
+        console.log(`📄 Content length: ${(file_text || '').length} characters`)
+        
+        const { error: createError, data: newNote } = await createNote({
+          title: title,
+          content: file_text || '',
+        })
+        if (createError) throw new Error(createError)
+
+        console.log('✅ Note created successfully')
+        return `Successfully created new note${title ? ` "${title}"` : ''} with ID: ${newNote?.id || 'unknown'}.`
+
+      case 'insert':
+        const insertNoteId = path.replace(/^note-/, '')
+        const { insert_line, new_str: insertText } = options as { insert_line: number; new_str: string }
+        
+        console.log(`📎 Inserting text at line ${insert_line} in note ${insertNoteId}`)
+        
+        if (insertText === undefined) {
+          throw new Error('new_str is required for insert')
+        }
+
+        const { data: insertNote, error: insertFetchError } = await getNote(insertNoteId)
+        if (insertFetchError) throw new Error(insertFetchError.message || 'Unknown database error')
+        if (!insertNote) throw new Error('File not found')
+
+        const currentContent = insertNote.content || ''
+        const lines = currentContent.split('\n')
+        
+        console.log(`📊 Current note has ${lines.length} lines`)
+        
+        const insertIndex = Math.max(0, Math.min(insert_line, lines.length))
+        lines.splice(insertIndex, 0, insertText)
+        
+        const updatedContent = lines.join('\n')
+        console.log(`💾 Updating note ${insertNoteId} with inserted text`)
+        const { error: insertUpdateError } = await updateNote(insertNoteId, { content: updatedContent })
+        if (insertUpdateError) throw new Error(insertUpdateError)
+
+        console.log('✅ Text insertion completed successfully')
+        return `Successfully inserted text at line ${insert_line}.`
 
       default:
-        return { success: false, error: `Unknown function: ${functionName}` }
+        console.log(`❌ Unsupported command: ${command}`)
+        throw new Error(`Unsupported command: ${command}`)
     }
   } catch (error) {
-    console.error('Function execution error:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' }
+    console.error('💥 Note editor operation error:', error)
+    throw error
   }
 }
 
-async function getLLMResponse(prompt: string): Promise<ChatAPIResponse> {
+async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<ChatAPIResponse> {
   try {
+    console.log('🤖 Starting conversation with Claude...')
+    
     if (!process.env.ANTHROPIC_API_KEY) {
       throw new Error('ANTHROPIC_API_KEY environment variable is not set')
     }
 
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      tools: availableFunctions,
-      messages: [
-        {
-          role: 'user',
-          content: `${prompt}
+    // Convert ChatMessage[] to Anthropic message format
+    const conversationMessages: Anthropic.MessageParam[] = [
+      ...messages.map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content
+      })),
+      {
+        role: 'user' as const,
+        content: prompt
+      }
+    ]
 
-You are a helpful assistant for a contact management application. You can help users manage their contacts, notes, and other data by filtering, sorting, navigating, creating new contacts, and updating note content.
+    console.log(`💬 Starting with ${conversationMessages.length} messages`)
 
-Available functions:
-- create_person_contact: Create new person contacts with their information
-- update_note_content: Update existing notes' title, content, or associations
+    const MAX_ITERATIONS = 10 // Prevent infinite loops
+    let iteration = 0
+    const allToolResults: Array<{ operation: string; path: string; result: string }> = []
+    
+    while (iteration < MAX_ITERATIONS) {
+      iteration++
+      console.log(`🔄 Conversation iteration ${iteration}`)
 
-When users ask to create or add a new person contact, use the create_person_contact function with the provided information. Extract as much relevant information as possible from the user's request.
-
-When users ask to update, modify, edit, or change note content, title, or associations, use the update_note_content function. You can update:
-- Note content (the main text/HTML content)
-- Note title
-- Associated contact (contact_id)
-- Associated meeting (meeting_id)
-
-For other requests, provide helpful responses and suggest specific actions when appropriate.
-
-Guidelines:
-- Use create_person_contact function when users want to add new contacts
-- Use update_note_content function when users want to modify existing notes
-- Extract information like name, email, phone, company, job title, location from user requests
-- For note updates, identify the note ID from context and the fields to update
-- For filters: suggest filter actions with columnId, operator, and value
-- For sorting: suggest sort actions with columnId and direction  
-- For navigation: suggest navigate actions with pathname
-- Always provide helpful and contextual responses`
-        }
-      ],
-    })
-
-    // Handle function calls
-    const toolUse = response.content.find(content => content.type === 'tool_use')
-    if (toolUse && toolUse.type === 'tool_use') {
-      const functionResult = await executeFunctionCall(toolUse.name, toolUse.input as Record<string, unknown>)
-
-      // Get the follow-up response after function execution with proper tool_result
-      const followUpResponse = await anthropic.messages.create({
+      const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [
+        max_tokens: 2000,
+        tools: [
           {
-            role: 'user',
-            content: prompt
+            type: "text_editor_20250429",
+            name: "str_replace_based_edit_tool"
           },
-          {
-            role: 'assistant',
-            content: response.content
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'tool_result',
-                tool_use_id: toolUse.id,
-                content: JSON.stringify(functionResult)
-              }
-            ]
-          }
+          // {
+          //   type: "web_search_20250305",
+          //   name: "web_search",
+          //   max_uses: 5
+          // }
         ],
+        messages: conversationMessages,
       })
 
-      const followUpContent = followUpResponse.content[0]?.type === 'text'
-        ? followUpResponse.content[0].text
-        : ''
+      console.log(`📨 Received response from Claude (iteration ${iteration})`)
 
-      return {
-        message: followUpContent || (functionResult.success
-          ? 'Contact created successfully!'
-          : `Failed to create contact: ${functionResult.error}`),
-        functionResult,
-        actions: []
+      // Log chain of thought if present
+      const textBlocks = response.content.filter(content => content.type === 'text')
+      if (textBlocks.length > 0) {
+        const thinkingContent = textBlocks.map(block => block.text).join('\n')
+        if (thinkingContent.includes('<thinking>') || thinkingContent.includes('thinking')) {
+          console.log('🧠 Chain of thought detected:')
+          console.log(thinkingContent)
+        } else {
+          console.log('💭 No chain of thought detected in this response')
+        }
+      } else {
+        console.log('💭 No text content (and therefore no chain of thought) in this response')
       }
+
+      // Check if Claude used any tools
+      const toolUses = response.content.filter(content => content.type === 'tool_use')
+      
+      if (toolUses.length === 0) {
+        // No more tools to execute, return the final response
+        console.log('✅ Claude provided final response (no more tools)')
+        const content = response.content.find(c => c.type === 'text')?.text || ''
+        
+        return {
+          message: content || 'Operation completed successfully!',
+          functionResult: allToolResults.length > 0 ? {
+            success: true,
+            data: { 
+              totalOperations: allToolResults.length,
+              operations: allToolResults 
+            }
+          } : undefined,
+          actions: []
+        }
+      }
+
+      // Execute all tool calls in this response
+      console.log(`🔧 Claude wants to execute ${toolUses.length} tool(s)`)
+      
+      // Add Claude's response to conversation
+      conversationMessages.push({
+        role: 'assistant',
+        content: response.content
+      })
+
+      // Execute each tool and collect results
+      const toolResults: Anthropic.MessageParam['content'] = []
+      
+      for (const toolUse of toolUses) {
+        if (toolUse.type === 'tool_use') {
+          console.log(`⚡ Executing tool: ${toolUse.name}`)
+          console.log('📋 Tool input:', toolUse.input)
+          console.log('Full toolUse:', JSON.stringify(toolUse, null, 2))
+          
+          try {
+            const input = toolUse.input as Record<string, unknown>
+            const command = input.command as string
+            const path = input.path as string
+            
+            const toolResult = await handleNoteEditorOperation(command, path, input)
+            console.log(`✅ Tool executed successfully: ${command} on ${path}`)
+            
+            // Track this operation
+            allToolResults.push({ operation: command, path, result: toolResult })
+            
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: toolUse.id,
+              content: toolResult
+            })
+          } catch (error) {
+            console.error(`💥 Tool execution failed:`, error)
+            
+            // Improved error handling with more specific messages
+            let errorMessage = 'Unknown error occurred'
+            if (error instanceof Error) {
+              if (error.message.includes('File not found')) {
+                errorMessage = 'File not found'
+              } else if (error.message.includes('No match found')) {
+                errorMessage = 'No match found for replacement. Please check your text and try again.'
+              } else if (error.message.includes('Found') && error.message.includes('matches')) {
+                errorMessage = error.message
+              } else if (error.message.includes('Permission denied') || error.message.includes('Cannot write')) {
+                errorMessage = 'Permission denied. Cannot write to file.'
+              } else {
+                errorMessage = error.message
+              }
+            }
+            
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: toolUse.id,
+              content: `Error: ${errorMessage}`,
+              is_error: true
+            })
+          }
+        }
+      }
+
+      // Add tool results to conversation
+      conversationMessages.push({
+        role: 'user',
+        content: toolResults
+      })
+
+      console.log(`📝 Added ${toolResults.length} tool result(s) to conversation`)
+      
+      // Continue the loop to see if Claude wants to do more
     }
 
-    // Handle regular text response
-    const content = response.content[0]?.type === 'text'
-      ? response.content[0].text
-      : ''
-
+    // If we hit the max iterations, return what we have
+    console.log(`⚠️ Reached maximum iterations (${MAX_ITERATIONS})`)
     return {
-      message: content || 'I apologize, but I encountered an error processing your request. Please try again.',
+      message: 'Operations completed (maximum iterations reached). Please check the results.',
+      functionResult: {
+        success: true,
+        data: { 
+          totalOperations: allToolResults.length,
+          operations: allToolResults,
+          note: 'Reached maximum conversation iterations'
+        }
+      },
       actions: []
     }
+
   } catch (error) {
-    console.error('Anthropic API error:', error)
+    console.error('💥 Anthropic API error:', error)
     throw new Error('Failed to get response from Anthropic API')
   }
-} 
+}
