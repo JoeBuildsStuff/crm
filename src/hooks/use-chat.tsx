@@ -97,11 +97,15 @@ export function useChat({ onSendMessage, onActionClick }: UseChatProps = {}) {
 
     const result = await response.json()
     
+    console.log('📨 API Response:', result)
+    console.log('🔧 Tool calls in response:', result.toolCalls)
+    
     addMessage({
       role: 'assistant',
       content: result.message || 'I apologize, but I couldn\'t generate a response.',
       suggestedActions: result.actions || [],
-      functionResult: result.functionResult
+      functionResult: result.functionResult,
+      toolCalls: result.toolCalls || []
     })
   }, [messages, addMessage])
 

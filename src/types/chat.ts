@@ -1,8 +1,8 @@
 import React from 'react'
-import type { ChatMessage, ChatAction, PageContext } from '@/lib/chat/chat-store'
+import type { ChatMessage, ChatAction, PageContext, ToolCall } from '@/lib/chat/chat-store'
 
 // Re-export core types from the store for convenience
-export type { ChatMessage, ChatAction, PageContext }
+export type { ChatMessage, ChatAction, PageContext, ToolCall }
 
 // Chat Session types
 export interface ChatSession {

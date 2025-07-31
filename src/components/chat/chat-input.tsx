@@ -73,7 +73,7 @@ export function ChatInput() {
               onValueChange={setSelectedModel}
               disabled={isLoading}
             >
-              <SelectTrigger size="sm" className="w-fit border-none text-muted-foreground" >
+              <SelectTrigger size="sm" className="w-fit border-none text-muted-foreground shadow-none" >
                 <SelectValue placeholder="Model" />
               </SelectTrigger>
               <SelectContent>

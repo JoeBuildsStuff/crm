@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { ChatMessage, PageContext } from '@/types/chat'
+import type { ToolCall } from '@/lib/chat/chat-store'
 import Anthropic from '@anthropic-ai/sdk'
 import { updateNote, createNote } from '@/app/(app)/workspace/note/_lib/actions'
 import { getNote, getNotes } from '@/app/(app)/workspace/note/_lib/queries'
@@ -29,6 +30,7 @@ interface ChatAPIResponse {
     data?: unknown
     error?: string
   }
+  toolCalls?: ToolCall[]
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIResponse>> {
@@ -277,6 +279,7 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
     const MAX_ITERATIONS = 10 // Prevent infinite loops
     let iteration = 0
     const allToolResults: Array<{ operation: string; path: string; result: string }> = []
+    const allToolCalls: ToolCall[] = []
     
     while (iteration < MAX_ITERATIONS) {
       iteration++
@@ -301,7 +304,6 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
 
       console.log(`📨 Received response from Claude (iteration ${iteration})`)
 
-
       // Log chain of thought if present
       const textBlocks = response.content.filter(content => content.type === 'text')
       if (textBlocks.length > 0) {
@@ -323,12 +325,11 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
         // No more tools to execute, return the final response
         console.log('✅ Claude provided final response (no more tools)')
         
-        // TODO: There is much more content in the response including citations and urls and link Agent, etc that we should incorporate in the client.
         // Concatenate all text blocks to get the complete response
         const textBlocks = response.content.filter(c => c.type === 'text')
         const content = textBlocks.map(block => block.text).join('\n\n')
         
-        return {
+        const finalResponse = {
           message: content || 'Operation completed successfully!',
           functionResult: allToolResults.length > 0 ? {
             success: true,
@@ -337,8 +338,14 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
               operations: allToolResults 
             }
           } : undefined,
+          toolCalls: allToolCalls,
           actions: []
         }
+        
+        console.log('📤 Final API Response:', finalResponse)
+        console.log('🔧 Tool calls being sent:', allToolCalls)
+        
+        return finalResponse
       }
 
       // Execute all tool calls in this response
@@ -359,6 +366,13 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
           console.log('📋 Tool input:', toolUse.input)
           console.log('Full toolUse:', JSON.stringify(toolUse, null, 2))
           
+          // Create tool call for tracking
+          const toolCall: ToolCall = {
+            id: toolUse.id,
+            name: toolUse.name,
+            arguments: toolUse.input as Record<string, unknown>
+          }
+          
           try {
             if (toolUse.name === 'str_replace_based_edit_tool') {
               const input = toolUse.input as Record<string, unknown>
@@ -366,10 +380,17 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
               const path = input.path as string
               
               const toolResult = await handleNoteEditorOperation(command, path, input)
+              console.log('🔧 Tool result:', toolResult)
               console.log(`✅ Tool executed successfully: ${command} on ${path}`)
               
               // Track this operation
               allToolResults.push({ operation: command, path, result: toolResult })
+              
+              // Update tool call with result
+              toolCall.result = {
+                success: true,
+                data: toolResult
+              }
               
               toolResults.push({
                 type: 'tool_result',
@@ -386,10 +407,21 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
                 result: 'Web search completed by Anthropic' 
               })
               
+              // Update tool call with result
+              toolCall.result = {
+                success: true,
+                data: 'Web search completed by Anthropic'
+              }
+              
               // Note: Web search results are automatically included in the response
               // by Anthropic, so we don't need to add anything to toolResults
             } else {
               console.log(`❌ Unknown tool: ${toolUse.name}`)
+              toolCall.result = {
+                success: false,
+                error: `Unknown tool ${toolUse.name}`
+              }
+              
               toolResults.push({
                 type: 'tool_result',
                 tool_use_id: toolUse.id,
@@ -416,6 +448,12 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
               }
             }
             
+            // Update tool call with error
+            toolCall.result = {
+              success: false,
+              error: errorMessage
+            }
+            
             toolResults.push({
               type: 'tool_result',
               tool_use_id: toolUse.id,
@@ -423,6 +461,9 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
               is_error: true
             })
           }
+          
+          // Add tool call to our tracking array
+          allToolCalls.push(toolCall)
         }
       }
 
@@ -439,7 +480,7 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
 
     // If we hit the max iterations, return what we have
     console.log(`⚠️ Reached maximum iterations (${MAX_ITERATIONS})`)
-    return {
+    const maxIterationsResponse = {
       message: 'Operations completed (maximum iterations reached). Please check the results.',
       functionResult: {
         success: true,
@@ -449,8 +490,14 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
           note: 'Reached maximum conversation iterations'
         }
       },
+      toolCalls: allToolCalls,
       actions: []
     }
+    
+    console.log('📤 Max iterations API Response:', maxIterationsResponse)
+    console.log('🔧 Tool calls being sent (max iterations):', allToolCalls)
+    
+    return maxIterationsResponse
 
   } catch (error) {
     console.error('💥 Anthropic API error:', error)
