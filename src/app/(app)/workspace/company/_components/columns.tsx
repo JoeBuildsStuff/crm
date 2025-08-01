@@ -4,8 +4,8 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { Company } from "../_lib/validations"
-import { Building2, Pilcrow, Calendar } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Building2, Pilcrow, Calendar, ArrowUpRight } from "lucide-react"
+import Link from "next/link"
 
 export const columns: ColumnDef<Company>[] = [
   {
@@ -46,7 +46,14 @@ export const columns: ColumnDef<Company>[] = [
       const name = row.getValue("name") as string
       return (
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-sm font-normal">{name || "—"}</Badge>
+          <Link 
+            href={`/workspace/company/${row.original.id}`}
+            className="hover:underline cursor-pointer"
+          >
+            <span className="flex items-center gap-1">
+              {name || "Untitled Company"} <ArrowUpRight className="size-4" strokeWidth={1.5} />
+            </span>
+          </Link>
         </div>
       )
     },

@@ -3,6 +3,21 @@ import { parseSearchParams, SearchParams } from "@/lib/data-table"
 import { Company } from "./validations"
 import { PostgrestError } from "@supabase/supabase-js"
 
+export async function getCompany(id: string): Promise<{
+  data: Company | null,
+  error: PostgrestError | null
+}> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .schema("registry")
+    .from("companies")
+    .select("*")
+    .eq("id", id)
+    .single()
+  
+  return { data: data ?? null, error }
+}
+
 export async function getCompanies(searchParams: SearchParams): Promise<{
   data: Company[],
   count: number,

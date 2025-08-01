@@ -4,6 +4,27 @@ import { MeetingWithRelations } from "./validations"
 import { PostgrestError } from "@supabase/supabase-js"
 import { Person } from "../../person/_lib/validations"
 
+export async function getMeeting(id: string): Promise<{
+  data: MeetingWithRelations | null,
+  error: PostgrestError | null
+}> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .schema("registry")
+    .from("meetings")
+    .select(`
+      *,
+      attendees:meeting_attendees(
+        *,
+        contact:contacts(id, first_name, last_name)
+      )
+    `)
+    .eq("id", id)
+    .single()
+  
+  return { data: data ?? null, error }
+}
+
 export async function getAvailableContacts(): Promise<{
   data: Pick<Person, "id" | "first_name" | "last_name">[],
   error: PostgrestError | null

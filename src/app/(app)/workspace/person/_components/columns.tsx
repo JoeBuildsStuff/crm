@@ -5,8 +5,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { PersonWithRelations } from "../_lib/validations"
-import { AtSign, BriefcaseBusiness, Building2, IdCard, MapPin, Phone, Pilcrow, Calendar } from "lucide-react"
+import { AtSign, BriefcaseBusiness, Building2, IdCard, MapPin, Phone, Pilcrow, Calendar, ArrowUpRight } from "lucide-react"
 import { formatPhoneNumber } from "react-phone-number-input"
+import Link from "next/link"
 
 export const columns: ColumnDef<PersonWithRelations>[] = [
   {
@@ -50,7 +51,14 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
 
       return (
         <div className="flex items-center gap-2">
-          <span className="font-medium">{displayName}</span>
+          <Link 
+            href={`/workspace/person/${row.original.id}`}
+            className="hover:underline cursor-pointer"
+          >
+            <span className="flex items-center gap-1">
+              {displayName} <ArrowUpRight className="size-4" strokeWidth={1.5} />
+            </span>
+          </Link>
         </div>
       )
     },

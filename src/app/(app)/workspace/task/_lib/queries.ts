@@ -5,6 +5,21 @@ import { PostgrestError } from "@supabase/supabase-js"
 import { Person } from "../../person/_lib/validations"
 import { Meeting } from "../../meeting/_lib/validations"
 
+export async function getTask(id: string): Promise<{
+  data: TaskWithRelations | null,
+  error: PostgrestError | null
+}> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .schema("registry")
+    .from("task")
+    .select("*, meetings(id, title), contacts!assigned_to_contact_id(id, first_name, last_name)")
+    .eq("id", id)
+    .single()
+  
+  return { data: data ?? null, error }
+}
+
 export async function getTasks(searchParams: SearchParams): Promise<{
   data: TaskWithRelations[],
   count: number,
