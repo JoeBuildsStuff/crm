@@ -16,6 +16,12 @@ interface ChatAPIRequest {
   message: string
   context?: PageContext | null
   messages?: ChatMessage[]
+  attachments?: Array<{
+    file: File
+    name: string
+    type: string
+    size: number
+  }>
 }
 
 interface ChatAPIResponse {
@@ -36,12 +42,49 @@ interface ChatAPIResponse {
 export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIResponse>> {
   try {
     console.log('🚀 Chat API: Processing new request')
-    const body: ChatAPIRequest = await request.json()
-    const { message, context, messages = [] } = body
+    
+    let body: ChatAPIRequest
+
+    // Check if the request is multipart/form-data (file upload)
+    const contentType = request.headers.get('content-type') || ''
+    
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData()
+      
+      const message = formData.get('message') as string
+      const contextStr = formData.get('context') as string
+      const messagesStr = formData.get('messages') as string
+      const attachmentCount = parseInt(formData.get('attachmentCount') as string || '0')
+      
+      const context = contextStr && contextStr !== 'null' ? JSON.parse(contextStr) : null
+      const messages = messagesStr ? JSON.parse(messagesStr) : []
+      
+      const attachments: Array<{ file: File; name: string; type: string; size: number }> = []
+      
+      // Process attachments
+      for (let i = 0; i < attachmentCount; i++) {
+        const file = formData.get(`attachment-${i}`) as File
+        const name = formData.get(`attachment-${i}-name`) as string
+        const type = formData.get(`attachment-${i}-type`) as string
+        const size = parseInt(formData.get(`attachment-${i}-size`) as string || '0')
+        
+        if (file) {
+          attachments.push({ file, name, type, size })
+        }
+      }
+      
+      body = { message, context, messages, attachments }
+    } else {
+      // Handle JSON request (backward compatibility)
+      body = await request.json()
+    }
+
+    const { message, context, messages = [], attachments = [] } = body
 
     console.log('📝 User message:', message)
     console.log('📊 Context available:', !!context)
     console.log('💬 Message history length:', messages.length)
+    console.log('📎 Attachments count:', attachments.length)
 
     // Validate input
     if (!message || typeof message !== 'string') {
@@ -57,7 +100,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIRe
 
     console.log('🎯 Built prompt for AI')
 
-    const response = await getLLMResponse(prompt, messages)
+    const response = await getLLMResponse(prompt, messages, attachments)
 
     console.log('✅ AI response generated successfully')
     return NextResponse.json(response)
@@ -254,7 +297,19 @@ async function handleNoteEditorOperation(
   }
 }
 
-async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<ChatAPIResponse> {
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+async function getLLMResponse(
+  prompt: string, 
+  messages: ChatMessage[], 
+  attachments: Array<{ file: File; name: string; type: string; size: number }> = []
+): Promise<ChatAPIResponse> {
   try {
     console.log('🤖 Starting conversation with Claude...')
     
@@ -267,12 +322,64 @@ async function getLLMResponse(prompt: string, messages: ChatMessage[]): Promise<
       ...messages.map(msg => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.content
-      })),
-      {
-        role: 'user' as const,
-        content: prompt
-      }
+      }))
     ]
+
+    // Construct the new user message with attachments
+    const newUserContentBlocks: Anthropic.ContentBlockParam[] = [{ type: 'text', text: prompt }]
+
+    // Process attachments
+    for (const attachment of attachments) {
+      if (attachment.type.startsWith('image/')) {
+        console.log(`🖼️ Processing image attachment: ${attachment.name}`)
+        const arrayBuffer = await attachment.file.arrayBuffer()
+        const base64 = Buffer.from(arrayBuffer).toString('base64')
+        
+        // Validate and map media type to supported formats
+        let mediaType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+        switch (attachment.type) {
+          case 'image/jpeg':
+          case 'image/jpg':
+            mediaType = 'image/jpeg'
+            break
+          case 'image/png':
+            mediaType = 'image/png'
+            break
+          case 'image/gif':
+            mediaType = 'image/gif'
+            break
+          case 'image/webp':
+            mediaType = 'image/webp'
+            break
+          default:
+            // Skip unsupported image types
+            console.log(`⚠️ Unsupported image format: ${attachment.type}`)
+            newUserContentBlocks.push({
+              type: 'text',
+              text: `\n\nUnsupported image format: ${attachment.name} (${attachment.type}, ${formatFileSize(attachment.size)})`
+            })
+            continue
+        }
+        
+        newUserContentBlocks.push({
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: base64 },
+        })
+        console.log(`✅ Image added to message: ${attachment.name}`)
+      } else {
+        console.log(`📎 Non-image attachment: ${attachment.name} (${attachment.type})`)
+        newUserContentBlocks.push({
+          type: 'text',
+          text: `\n\nFile attachment: ${attachment.name} (${attachment.type}, ${formatFileSize(attachment.size)})`
+        })
+      }
+    }
+    
+    // Add the new user message with attachments
+    conversationMessages.push({
+      role: 'user',
+      content: newUserContentBlocks
+    })
 
     console.log(`💬 Starting with ${conversationMessages.length} messages`)
 

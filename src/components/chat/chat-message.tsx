@@ -180,8 +180,7 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
         {/* Message bubble or editing textarea */}
         {isEditing && isUser ? (
           <div className={cn(
-            "rounded-lg px-3 py-2 text-sm",
-            "bg-primary text-primary-foreground"
+            "rounded-lg px-3 py-2 text-sm"
           )}>
             <Textarea
               value={editContent}
@@ -213,7 +212,7 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
             "rounded-lg px-3 py-2 text-sm",
             "break-words",
             isUser && [
-              "bg-primary text-primary-foreground",
+              "bg-muted text-foreground",
             ],
             !isUser && !isSystem && [
               "bg-muted text-foreground",
@@ -229,28 +228,7 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
             ) : (
               <div className={cn(
                 "prose prose-sm max-w-none",
-                isUser ? "prose-invert" : "dark:prose-invert",
-                // Override prose colors for user messages
-                isUser && [
-                  "prose-p:text-primary-foreground",
-                  "prose-ul:text-primary-foreground",
-                  "prose-ol:text-primary-foreground",
-                  "prose-li:text-primary-foreground",
-                  "prose-h1:text-primary-foreground",
-                  "prose-h2:text-primary-foreground",
-                  "prose-h3:text-primary-foreground",
-                  "prose-strong:text-primary-foreground",
-                  "prose-em:text-primary-foreground",
-                  "prose-blockquote:text-primary-foreground/80",
-                  "prose-blockquote:border-primary-foreground/30",
-                  "prose-hr:border-primary-foreground/20",
-                  "prose-table:border-primary-foreground/20",
-                  "prose-th:border-primary-foreground/20",
-                  "prose-th:bg-primary-foreground/10",
-                  "prose-th:text-primary-foreground",
-                  "prose-td:border-primary-foreground/20",
-                  "prose-td:text-primary-foreground"
-                ]
+                "dark:prose-invert"
               )}>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -262,9 +240,7 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
                       return isInline ? (
                         <code className={cn(
                           "px-1.5 py-0.5 rounded text-xs font-mono border",
-                          isUser
-                            ? "bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20"
-                            : "bg-muted/60 border-muted-foreground/20"
+                          "bg-muted/60 border-muted-foreground/20"
                         )} {...props}>
                           {children}
                         </code>
@@ -277,9 +253,7 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
                     pre: ({ children }) => (
                       <pre className={cn(
                         "p-3 rounded-md overflow-x-auto my-2 border text-xs",
-                        isUser
-                          ? "bg-primary-foreground/10 border-primary-foreground/20"
-                          : "bg-muted/60 border-muted-foreground/20"
+                        "bg-muted/60 border-muted-foreground/20"
                       )}>
                         {children}
                       </pre>
