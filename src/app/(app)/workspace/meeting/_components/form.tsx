@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, FileText, CheckCircle, ChevronDownIcon, Timer, Users } from "lucide-react";
+import { Clock, ChevronDownIcon, Timer, Users, Type, Pilcrow, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -236,7 +236,7 @@ export default function MeetingForm({
 
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
-                    <FileText className="size-4 shrink-0" strokeWidth={1.5} />
+                    <Type className="size-4 shrink-0" strokeWidth={1.5} />
                     <span className="whitespace-nowrap @max-sm:hidden">Meeting Title</span>
                 </div>
                 <input 
@@ -268,7 +268,7 @@ export default function MeetingForm({
             
             <div className="flex items-start gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
-                    <FileText className="size-4 shrink-0" strokeWidth={1.5} />
+                    <Pilcrow className="size-4 shrink-0" strokeWidth={1.5} />
                     <span className="whitespace-nowrap @max-sm:hidden">Description</span>
                 </div>
                 <Textarea 

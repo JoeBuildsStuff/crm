@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Type, Calendar, Users } from "lucide-react";
+import { Type, Calendar, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Person } from "../../person/_lib/validations";
@@ -12,7 +12,10 @@ import Tiptap from "@/components/tiptap/tiptap";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import PersonForm from "../../person/_components/form";
+import MeetingForm from "../../meeting/_components/form";
 import { createPerson } from "../../person/_lib/actions";
+import { createMeeting } from "../../meeting/_lib/actions";
+import { toast } from "sonner";
 
 type ContactForNote = Pick<Person, "id" | "first_name" | "last_name">
 type MeetingForNote = Pick<Meeting, "id" | "title">
@@ -51,7 +54,9 @@ export default function NoteForm({
     const [meeting, setMeeting] = useState(initialData.meeting_id || "");
     const [title, setTitle] = useState(initialData.title || "");
     const [addPersonDialogOpen, setAddPersonDialogOpen] = useState(false);
+    const [addMeetingDialogOpen, setAddMeetingDialogOpen] = useState(false);
     const [contacts, setContacts] = useState(availableContacts);
+    const [meetings, setMeetings] = useState(availableMeetings);
     const [personFormData, setPersonFormData] = useState({
         firstName: "",
         lastName: "",
@@ -64,11 +69,41 @@ export default function NoteForm({
         linkedin: "",
         jobTitle: ""
     });
+    const [meetingFormData, setMeetingFormData] = useState({
+        title: "",
+        description: "",
+        start_time: "",
+        end_time: "",
+        status: "scheduled",
+        attendees: [] as string[]
+    });
+
+    // Set default meeting times when dialog opens
+    const handleOpenMeetingDialog = () => {
+        const now = new Date();
+        const startTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour duration
+        
+        setMeetingFormData({
+            title: "",
+            description: "",
+            start_time: startTime.toISOString(),
+            end_time: endTime.toISOString(),
+            status: "scheduled",
+            attendees: []
+        });
+        setAddMeetingDialogOpen(true);
+    };
 
     useEffect(() => {
         console.log("Setting contacts in NoteForm:", availableContacts)
         setContacts(availableContacts);
     }, [availableContacts]);
+
+    useEffect(() => {
+        console.log("Setting meetings in NoteForm:", availableMeetings)
+        setMeetings(availableMeetings);
+    }, [availableMeetings]);
 
     useEffect(() => {
         if (onChange) {
@@ -88,7 +123,7 @@ export default function NoteForm({
         searchValue: `${c.first_name} ${c.last_name}`
     })) || [];
 
-    const meetingOptions = availableMeetings?.map(m => ({
+    const meetingOptions = meetings?.map(m => ({
         id: m.id,
         label: m.title,
         searchValue: m.title
@@ -139,9 +174,69 @@ export default function NoteForm({
                     jobTitle: ""
                 });
                 setAddPersonDialogOpen(false);
+                toast.success("Person created successfully");
+            } else {
+                toast.error("Failed to create person", { description: result.error });
             }
         } catch (error) {
             console.error("Error creating person:", error);
+            toast.error("An unexpected error occurred while creating the person.");
+        }
+    };
+
+    const handleCreateMeeting = async () => {
+        if (!meetingFormData.title.trim()) {
+            toast.error("Meeting title is required.");
+            return;
+        }
+
+        try {
+            // Prepare meeting data, filtering out empty timestamp values
+            const meetingData: Record<string, unknown> = {
+                title: meetingFormData.title,
+                description: meetingFormData.description,
+                status: meetingFormData.status,
+                _attendees: meetingFormData.attendees.filter(id => id.trim() !== '')
+            };
+
+            // Only add start_time and end_time if they have valid values
+            if (meetingFormData.start_time && meetingFormData.start_time.trim() !== '') {
+                meetingData.start_time = meetingFormData.start_time;
+            }
+            if (meetingFormData.end_time && meetingFormData.end_time.trim() !== '') {
+                meetingData.end_time = meetingFormData.end_time;
+            }
+
+            const result = await createMeeting(meetingData);
+
+            if (result.success && result.data) {
+                // Add the new meeting to the meetings list
+                const newMeeting = {
+                    id: result.data.id,
+                    title: result.data.title
+                };
+                setMeetings(prev => [...prev, newMeeting]);
+                
+                // Select the newly created meeting
+                setMeeting(result.data.id);
+                
+                // Reset form and close dialog
+                setMeetingFormData({
+                    title: "",
+                    description: "",
+                    start_time: "",
+                    end_time: "",
+                    status: "scheduled",
+                    attendees: []
+                });
+                setAddMeetingDialogOpen(false);
+                toast.success("Meeting created successfully");
+            } else {
+                toast.error("Failed to create meeting", { description: result.error });
+            }
+        } catch (error) {
+            console.error("Error creating meeting:", error);
+            toast.error("An unexpected error occurred while creating the meeting.");
         }
     };
 
@@ -163,6 +258,26 @@ export default function NoteForm({
         } else if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
             e.preventDefault();
             handleCreatePerson();
+        }
+    };
+
+    const handleAddMeetingDialogKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Escape") {
+            setAddMeetingDialogOpen(false);
+            const now = new Date();
+            const startTime = new Date(now.getTime() + 30 * 60 * 1000);
+            const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+            setMeetingFormData({
+                title: "",
+                description: "",
+                start_time: startTime.toISOString(),
+                end_time: endTime.toISOString(),
+                status: "scheduled",
+                attendees: []
+            });
+        } else if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+            e.preventDefault();
+            handleCreateMeeting();
         }
     };
 
@@ -213,18 +328,21 @@ export default function NoteForm({
                     emptyText="No meeting found."
                     showBadge={true}
                     badgeVariant="outline"
+                    allowCreate={true}
+                    createText="Add Meeting"
+                    onCreateClick={handleOpenMeetingDialog}
                 />
             </div>
-            <div className="flex items-start gap-2 mt-4">
-                <div className="flex items-start gap-2 text-muted-foreground min-w-[5rem] pt-1">
-                    <FileText className="size-4 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 mt-2">
+                {/* <div className="flex items-start gap-2 text-muted-foreground min-w-[5rem] pt-1">
+                    <File className="size-4 shrink-0 mt-0.5" />
                     <Label htmlFor="content" className="mt-0.5">Content</Label>
-                </div>
+                </div> */}
                 <div className="w-full min-w-0">
                     <Tiptap
                         content={content}
                         onChange={setContent}
-                        showFixedMenu={false}
+                        showFixedMenu={true}
                         showBubbleMenu={true}
                     />
                 </div>
@@ -277,6 +395,53 @@ export default function NoteForm({
                             disabled={!personFormData.firstName.trim() && !personFormData.lastName.trim()}
                         >
                             Create Person
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={addMeetingDialogOpen} onOpenChange={setAddMeetingDialogOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto" onKeyDown={handleAddMeetingDialogKeyDown}>
+                    <DialogHeader>
+                        <DialogTitle>Add New Meeting</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <MeetingForm
+                            initialTitle={meetingFormData.title}
+                            initialDescription={meetingFormData.description}
+                            initialStartTime={meetingFormData.start_time}
+                            initialEndTime={meetingFormData.end_time}
+                            initialStatus={meetingFormData.status}
+                            initialAttendees={meetingFormData.attendees}
+                            availableContacts={contacts}
+                            onChange={setMeetingFormData}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => {
+                                setAddMeetingDialogOpen(false);
+                                const now = new Date();
+                                const startTime = new Date(now.getTime() + 30 * 60 * 1000);
+                                const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+                                setMeetingFormData({
+                                    title: "",
+                                    description: "",
+                                    start_time: startTime.toISOString(),
+                                    end_time: endTime.toISOString(),
+                                    status: "scheduled",
+                                    attendees: []
+                                });
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={handleCreateMeeting} 
+                            disabled={!meetingFormData.title.trim()}
+                        >
+                            Create Meeting
                         </Button>
                     </DialogFooter>
                 </DialogContent>
