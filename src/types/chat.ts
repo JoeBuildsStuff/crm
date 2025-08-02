@@ -1,8 +1,8 @@
 import React from 'react'
-import type { ChatMessage, ChatAction, PageContext, ToolCall } from '@/lib/chat/chat-store'
+import type { ChatMessage, PageContext, ToolCall } from '@/lib/chat/chat-store'
 
 // Re-export core types from the store for convenience
-export type { ChatMessage, ChatAction, PageContext, ToolCall }
+export type { ChatMessage, PageContext, ToolCall }
 
 // Chat Session types
 export interface ChatSession {
@@ -82,7 +82,6 @@ export interface ChatPanelProps {
 export interface ChatMessageProps {
   message: ChatMessage
   className?: string
-  onActionClick?: (action: ChatAction) => void
 }
 
 export interface ChatInputProps {
@@ -101,15 +100,10 @@ export interface ChatHeaderProps {
 
 export interface ChatMessagesListProps {
   messages: ChatMessage[]
-  onActionClick?: (action: ChatAction) => void
   className?: string
 }
 
-export interface ChatFilterSuggestionsProps {
-  actions: ChatAction[]
-  onActionClick: (action: ChatAction) => void
-  className?: string
-}
+
 
 // API types
 export interface ChatAPIRequest {
@@ -119,7 +113,6 @@ export interface ChatAPIRequest {
 
 export interface ChatAPIResponse {
   message: string
-  actions?: ChatAction[]
   error?: string
 }
 
@@ -133,7 +126,6 @@ export interface UseChatReturn extends ChatContextValue {
   
   // Enhanced actions
   sendMessage: (content: string) => Promise<void>
-  executeAction: (action: ChatAction) => void
   retryLastMessage: () => Promise<void>
 }
 

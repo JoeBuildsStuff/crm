@@ -102,7 +102,6 @@ Individual message component with different styles for user/assistant/system.
 
 **Features:**
 - Timestamp display
-- Suggested actions as buttons
 - Loading placeholder component
 
 ### 7. Chat Input (`chat-input.tsx`)
@@ -263,61 +262,9 @@ Wrapper component that provides page context to the chat system.
 1. **Page Load**: `usePageContext` extracts filters/sorting from URL
 2. **Data Update**: `TableWithPageContext` updates chat context
 3. **User Input**: Chat sends context + message to API
-4. **AI Response**: API returns message + suggested actions
-5. **Action Execution**: Actions can modify filters, sorting, or navigation
+4. **AI Response**: API returns message with function results
 
-## Suggested Actions
 
-The AI can suggest four types of actions:
-
-### 1. Filter Actions
-```typescript
-{
-  type: 'filter',
-  label: 'Show active users',
-  payload: {
-    columnId: 'status',
-    operator: 'eq',
-    value: 'active'
-  }
-}
-```
-
-### 2. Sort Actions
-```typescript
-{
-  type: 'sort',
-  label: 'Sort by name',
-  payload: {
-    columnId: 'name',
-    direction: 'asc'
-  }
-}
-```
-
-### 3. Navigation Actions
-```typescript
-{
-  type: 'navigate',
-  label: 'Go to users page',
-  payload: {
-    pathname: '/users',
-    clearFilters: true
-  }
-}
-```
-
-### 4. Create Actions
-```typescript
-{
-  type: 'create',
-  label: 'Add new user',
-  payload: {
-    action: 'openForm',
-    type: 'user'
-  }
-}
-```
 
 ## Styling and Theming
 

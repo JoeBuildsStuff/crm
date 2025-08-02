@@ -2,15 +2,14 @@
 
 import { useCallback, useMemo } from 'react'
 import { useChatStore } from '@/lib/chat/chat-store'
-import type { ChatMessage, ChatAction, PageContext } from '@/types/chat'
+import type { ChatMessage, PageContext } from '@/types/chat'
 import type { Attachment } from '@/components/chat/chat-input'
 
 interface UseChatProps {
   onSendMessage?: (message: string, attachments?: Attachment[]) => Promise<void>
-  onActionClick?: (action: ChatAction) => void
 }
 
-export function useChat({ onSendMessage, onActionClick }: UseChatProps = {}) {
+export function useChat({ onSendMessage }: UseChatProps = {}) {
   const {
     messages,
     isOpen,
@@ -109,25 +108,11 @@ export function useChat({ onSendMessage, onActionClick }: UseChatProps = {}) {
     
     addMessage({
       role: 'assistant',
-      content: result.message || 'I apologize, but I couldn\'t generate a response.',
-      suggestedActions: result.actions || []
+      content: result.message || 'I apologize, but I couldn\'t generate a response.'
     })
   }, [messages, addMessage])
 
-  // Handle action clicks
-  const handleActionClick = useCallback((action: ChatAction) => {
-    if (onActionClick) {
-      onActionClick(action)
-    } else {
-      // Default action handling
-      console.log('Action clicked:', action)
-      // Add confirmation message
-      addMessage({
-        role: 'system',
-        content: `Action executed: ${action.label}`,
-      })
-    }
-  }, [onActionClick, addMessage])
+
 
   // Get unread message count
   const getUnreadCount = useCallback(() => {
@@ -187,7 +172,6 @@ export function useChat({ onSendMessage, onActionClick }: UseChatProps = {}) {
     updateMessage,
     deleteMessage,
     clearMessages,
-    handleActionClick,
 
     // UI State
     setOpen,

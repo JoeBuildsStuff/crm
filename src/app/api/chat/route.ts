@@ -26,11 +26,6 @@ interface ChatAPIRequest {
 
 interface ChatAPIResponse {
   message: string
-  actions?: Array<{
-    type: 'filter' | 'sort' | 'navigate' | 'create' | 'function_call'
-    label: string
-    payload: Record<string, unknown>
-  }>
   functionResult?: {
     success: boolean
     data?: unknown
@@ -445,8 +440,7 @@ async function getLLMResponse(
               operations: allToolResults 
             }
           } : undefined,
-          toolCalls: allToolCalls,
-          actions: []
+          toolCalls: allToolCalls
         }
         
         console.log('📤 Final API Response:', finalResponse)
@@ -597,8 +591,7 @@ async function getLLMResponse(
           note: 'Reached maximum conversation iterations'
         }
       },
-      toolCalls: allToolCalls,
-      actions: []
+      toolCalls: allToolCalls
     }
     
     console.log('📤 Max iterations API Response:', maxIterationsResponse)

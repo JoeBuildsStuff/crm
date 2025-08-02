@@ -1,6 +1,6 @@
 # Tool Calls in Chat System
 
-This document explains how to use tool calls in the chat system to display tool execution information between messages.
+This document explains how to use tool calls in the chat system to display tool execution information between messages. Tool calls provide transparency into the AI's decision-making process and help users understand what actions were taken.
 
 ## Overview
 

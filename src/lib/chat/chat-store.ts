@@ -21,7 +21,6 @@ export interface ChatMessage {
     filters?: Record<string, unknown>
     data?: Record<string, unknown>
   }
-  suggestedActions?: ChatAction[]
   functionResult?: {
     success: boolean
     data?: unknown
@@ -30,11 +29,7 @@ export interface ChatMessage {
   toolCalls?: ToolCall[]
 }
 
-export interface ChatAction {
-  type: 'filter' | 'sort' | 'navigate' | 'create' | 'function_call'
-  label: string
-  payload: Record<string, unknown>
-}
+
 
 export interface PageContext {
   currentFilters: Record<string, unknown>

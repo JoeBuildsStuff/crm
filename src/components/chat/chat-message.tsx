@@ -5,7 +5,7 @@ import { ChevronDown, CopyIcon, DraftingCompass, Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
-import { ChatMessage as ChatMessageType, ChatAction } from '@/types/chat'
+import { ChatMessage as ChatMessageType } from '@/types/chat'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -22,7 +22,6 @@ import 'highlight.js/styles/github-dark.css'
 
 interface ChatMessageProps {
   message: ChatMessageType
-  onActionClick?: (action: ChatAction) => void
 }
 
 // Loading placeholder component
@@ -45,7 +44,7 @@ export function ChatMessageLoading() {
   )
 }
 
-export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
+export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
   const [isEditing, setIsEditing] = useState(false)
@@ -280,25 +279,7 @@ export function ChatMessage({ message, onActionClick }: ChatMessageProps) {
           </Badge>
         )}
 
-        {/* Suggested actions */}
-        {message.suggestedActions && message.suggestedActions.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {message.suggestedActions.map((action, index) => (
-              <button
-                key={index}
-                className={cn(
-                  "text-xs px-2 py-1 rounded-md",
-                  "bg-secondary text-secondary-foreground",
-                  "hover:bg-secondary/80 transition-colors",
-                  "border border-border"
-                )}
-                onClick={() => onActionClick?.(action)}
-              >
-                {action.label}
-              </button>
-            ))}
-          </div>
-        )}
+
       </div>
     </div>
   )

@@ -1,8 +1,7 @@
 "use client";
 
-import { Clock, ChevronDownIcon, Timer, Users, Type, Pilcrow, CheckCircle } from "lucide-react";
+import { Clock, Timer, Users, Type, Pilcrow, CheckCircle, CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Textarea } from "@/components/ui/textarea";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import MultipleSelector, { Option } from "@/components/ui/multiselect";
+import Tiptap from "@/components/tiptap/tiptap";
 
 export interface MeetingFormProps {
     /**
@@ -233,7 +233,7 @@ export default function MeetingForm({
     return (
         <div className={cn("@container flex flex-col gap-4 text-foreground w-full", className)}>
 
-
+            {/* Title Section */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <Type className="size-4 shrink-0" strokeWidth={1.5} />
@@ -247,7 +247,29 @@ export default function MeetingForm({
                 />
             </div>
 
+            {/* Attendees Section */}
+            <div className="flex items-start gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                    <Users className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Attendees</span>
+                </div>
+                <div className="w-full">
+                    <MultipleSelector
+                        value={selectedAttendeeOptions}
+                        onChange={handleAttendeesChange}
+                        options={contactOptions}
+                        placeholder="Select attendees..."
+                        emptyIndicator={
+                            <p className="text-center text-sm text-muted-foreground">
+                                No contacts found.
+                            </p>
+                        }
+                    />
+                </div>
+            </div>
 
+
+            {/* Status Section */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <CheckCircle className="size-4 shrink-0" strokeWidth={1.5} />
@@ -265,21 +287,9 @@ export default function MeetingForm({
                     <ToggleGroupItem value="cancelled" className="text-xs">Cancelled</ToggleGroupItem>
                 </ToggleGroup>
             </div>
-            
-            <div className="flex items-start gap-2 justify-between">
-                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
-                    <Pilcrow className="size-4 shrink-0" strokeWidth={1.5} />
-                    <span className="whitespace-nowrap @max-sm:hidden">Description</span>
-                </div>
-                <Textarea 
-                    className="w-full min-w-0 text-left hover:bg-secondary rounded-md py-2 px-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring min-h-20"
-                    placeholder="Enter meeting description..."
-                    rows={3}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                />
-            </div>
+        
 
+            {/* Start Time Section */}
             <div className="flex items-start gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
                     <Clock className="size-4 shrink-0" strokeWidth={1.5} />
@@ -295,7 +305,7 @@ export default function MeetingForm({
                                     className="w-full justify-between font-normal"
                                 >
                                     {startDate ? startDate.toLocaleDateString() : "Select date"}
-                                    <ChevronDownIcon className="size-4" />
+                                    <CalendarIcon className="size-4 text-muted-foreground" />
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto overflow-hidden p-0" align="start">
@@ -320,6 +330,7 @@ export default function MeetingForm({
                 </div>
             </div>
 
+            {/* End Time Section */}
             <div className="flex items-start gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
                     <Clock className="size-4 shrink-0" strokeWidth={1.5} />
@@ -335,7 +346,7 @@ export default function MeetingForm({
                                     className="w-full justify-between font-normal"
                                 >
                                     {endDate ? endDate.toLocaleDateString() : "Select date"}
-                                    <ChevronDownIcon className="size-4" />
+                                    <CalendarIcon className="size-4 text-muted-foreground" />
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto overflow-hidden p-0" align="start">
@@ -360,6 +371,7 @@ export default function MeetingForm({
                 </div>
             </div>
 
+            {/* Duration Section */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <Timer className="size-4 shrink-0" strokeWidth={1.5} />
@@ -387,22 +399,16 @@ export default function MeetingForm({
                 </div>
             </div>
 
+            {/* Description Section */}
             <div className="flex items-start gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
-                    <Users className="size-4 shrink-0" strokeWidth={1.5} />
-                    <span className="whitespace-nowrap @max-sm:hidden">Attendees</span>
+                    <Pilcrow className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Description</span>
                 </div>
                 <div className="w-full">
-                    <MultipleSelector
-                        value={selectedAttendeeOptions}
-                        onChange={handleAttendeesChange}
-                        options={contactOptions}
-                        placeholder="Select attendees..."
-                        emptyIndicator={
-                            <p className="text-center text-sm text-muted-foreground">
-                                No contacts found.
-                            </p>
-                        }
+                    <Tiptap 
+                        content={description}
+                        onChange={(content: string) => setDescription(content)}
                     />
                 </div>
             </div>

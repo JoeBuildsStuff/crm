@@ -55,13 +55,7 @@ export const MESSAGE_ROLES = {
   SYSTEM: 'system',
 } as const
 
-// Action types for chat interactions
-export const CHAT_ACTION_TYPES = {
-  FILTER: 'filter',
-  SORT: 'sort',
-  NAVIGATE: 'navigate',
-  CREATE: 'create',
-} as const
+
 
 // Storage keys
 export const STORAGE_KEYS = {
