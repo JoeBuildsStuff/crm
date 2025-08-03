@@ -25,6 +25,9 @@ export default async function DataTableNote({
   const pageCount = Math.ceil((count ?? 0) / (pagination?.pageSize ?? 10))
   const initialState = {
     ...parseSearchParams(searchParams),
+    columnVisibility: {
+      content: false,
+    },
   }
 
   // Cast the data and actions to match DataTable's expected types

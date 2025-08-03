@@ -94,7 +94,21 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Meeting" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
     cell: ({ row }) => {
       const meeting = row.original.meetings
-      return <div className="text-sm text-muted-foreground">{meeting?.title || "—"}</div>
+      if (!meeting?.title) return <div className="text-muted-foreground">—</div>
+      return (
+        <Link 
+          href={`/workspace/meeting/${meeting.id}`}
+          className="inline-flex items-center gap-1 group cursor-pointer"
+        >
+          <Badge 
+            variant="green" 
+            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+          >
+            {meeting.title}
+          </Badge>
+          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-green-600 dark:text-green-400" />
+        </Link>
+      )
     },
     accessorKey: "meeting_id",
     meta: {
@@ -111,7 +125,20 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
       const contact = row.original.contacts
       if (!contact || (!contact.first_name && !contact.last_name)) return <div className="text-muted-foreground">—</div>
       const fullName = `${contact.first_name || ""} ${contact.last_name || ""}`.trim()
-      return <Badge variant="blue" className="text-sm font-normal">{fullName || "—"}</Badge>
+      return (
+        <Link 
+          href={`/workspace/person/${contact.id}`}
+          className="inline-flex items-center gap-1 group cursor-pointer"
+        >
+          <Badge 
+            variant="blue" 
+            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+          >
+            {fullName || "—"}
+          </Badge>
+          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
+        </Link>
+      )
     },
     accessorKey: "contact_id",
     meta: {

@@ -184,16 +184,18 @@ export const columns: ColumnDef<MeetingWithRelations>[] = [
       }
       
       return (
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           {attendees.map((attendee) => {
             // Determine the display name
             let displayName = "Unknown"
+            let contactId = null
             
             if (attendee.contact) {
               // Use contact information if available
               const firstName = attendee.contact.first_name || ""
               const lastName = attendee.contact.last_name || ""
               displayName = `${firstName} ${lastName}`.trim() || "Unknown Contact"
+              contactId = attendee.contact.id
             } else if (attendee.external_name) {
               // Use external name if no contact linked
               displayName = attendee.external_name
@@ -202,15 +204,33 @@ export const columns: ColumnDef<MeetingWithRelations>[] = [
               displayName = attendee.external_email
             }
             
-            return (
-              <Badge 
-                key={attendee.id} 
-                variant="secondary" 
-                className="text-xs font-normal"
-              >
-                {displayName}
-              </Badge>
-            )
+            if (contactId) {
+              return (
+                <Link 
+                  key={attendee.id}
+                  href={`/workspace/person/${contactId}`}
+                  className="inline-flex items-center gap-1 group cursor-pointer"
+                >
+                  <Badge 
+                    variant="blue" 
+                    className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+                  >
+                    {displayName}
+                  </Badge>
+                  <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
+                </Link>
+              )
+            } else {
+              return (
+                <Badge 
+                  key={attendee.id} 
+                  variant="secondary" 
+                  className="text-sm font-normal"
+                >
+                  {displayName}
+                </Badge>
+              )
+            }
           })}
         </div>
       )

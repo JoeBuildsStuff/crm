@@ -1,9 +1,9 @@
 "use client";
 
-import { Building2, Pilcrow } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import Tiptap from "@/components/tiptap/tiptap";
 
 export interface CompanyFormProps {
     /**
@@ -62,17 +62,16 @@ export default function CompanyForm({
             </div>
             
             <div className="flex items-start gap-2 justify-between">
-                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                {/* <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
                     <Pilcrow className="size-4 shrink-0" strokeWidth={1.5} />
                     <span className="whitespace-nowrap @max-sm:hidden">Description</span>
+                </div> */}
+                <div className="w-full">
+                    <Tiptap 
+                        content={description}
+                        onChange={(content) => setDescription(content)}
+                    />
                 </div>
-                <Textarea 
-                    className="w-full min-w-0 text-left hover:bg-secondary rounded-md py-2 px-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring min-h-20"
-                    placeholder="Enter company description..."
-                    rows={3}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                />
             </div>
         </div>
     );

@@ -7,6 +7,9 @@ export default async function Page({
 }) {
   const params = await searchParams
 
+
+
+  
   return (
     <main className="">
       <DataTableCompany searchParams={params} />

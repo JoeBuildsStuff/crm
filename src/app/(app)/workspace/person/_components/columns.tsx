@@ -131,6 +131,26 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
     enableColumnFilter: true,
   },
   {
+    accessorKey: "job_title",
+    header: ({ column }) => (
+      <DataTableColumnHeader 
+        column={column} 
+        title="Title" 
+        icon={<BriefcaseBusiness className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+      />
+    ),
+    cell: ({ row }) => {
+      const jobTitle = row.getValue("job_title") as string
+      return <div className="text-sm">{jobTitle || "—"}</div>
+    },
+    meta: {
+      label: "Job Title",
+      variant: "text",
+      placeholder: "Software Engineer",
+    },
+    enableColumnFilter: true,
+  },
+  {
     accessorKey: "description",
     header: ({ column }) => (
       <DataTableColumnHeader 
@@ -171,32 +191,25 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
     cell: ({ row }) => {
       const company = row.original.company
       if (!company) return <div className="text-muted-foreground">—</div>
-      return <Badge variant="outline" className="text-sm font-normal">{company.name}</Badge>
+      return (
+        <Link 
+          href={`/workspace/company/${company.id}`}
+          className="inline-flex items-center gap-1 group cursor-pointer"
+        >
+          <Badge 
+            variant="outline" 
+            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+          >
+            {company.name}
+          </Badge>
+          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-muted-foreground" />
+        </Link>
+      )
     },
     meta: {
       label: "Company",
       variant: "text",
       placeholder: "Company ABC",
-    },
-    enableColumnFilter: true,
-  },
-  {
-    accessorKey: "job_title",
-    header: ({ column }) => (
-      <DataTableColumnHeader 
-        column={column} 
-        title="Title" 
-        icon={<BriefcaseBusiness className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
-      />
-    ),
-    cell: ({ row }) => {
-      const jobTitle = row.getValue("job_title") as string
-      return <div className="text-sm">{jobTitle || "—"}</div>
-    },
-    meta: {
-      label: "Job Title",
-      variant: "text",
-      placeholder: "Software Engineer",
     },
     enableColumnFilter: true,
   },

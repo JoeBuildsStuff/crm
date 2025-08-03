@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { TaskWithRelations } from "../_lib/validations"
 import { Badge } from "@/components/ui/badge"
-import {Calendar, User, GitBranch, Milestone, Pilcrow, ArrowUpRight, Type } from "lucide-react"
+import {Calendar, User, Milestone, Pilcrow, ArrowUpRight, Type } from "lucide-react"
 import Link from "next/link"
 
 export const columns: ColumnDef<TaskWithRelations>[] = [
@@ -90,6 +90,7 @@ export const columns: ColumnDef<TaskWithRelations>[] = [
       placeholder: "Enter task description...",
     },
     enableColumnFilter: true,
+    enableHiding: true,
   },
   {
     accessorKey: "status",
@@ -141,10 +142,24 @@ export const columns: ColumnDef<TaskWithRelations>[] = [
   },
   {
     id: "meeting",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Meeting" icon={<GitBranch className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Meeting" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
     cell: ({ row }) => {
       const meeting = row.original.meetings
-      return <div className="text-sm text-muted-foreground">{meeting?.title || "—"}</div>
+      if (!meeting?.title) return <div className="text-muted-foreground">—</div>
+      return (
+        <Link 
+          href={`/workspace/meeting/${meeting.id}`}
+          className="inline-flex items-center gap-1 group cursor-pointer"
+        >
+          <Badge 
+            variant="green" 
+            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+          >
+            {meeting.title}
+          </Badge>
+          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-green-600 dark:text-green-400" />
+        </Link>
+      )
     },
     accessorKey: "meeting_id",
     meta: {
@@ -161,7 +176,20 @@ export const columns: ColumnDef<TaskWithRelations>[] = [
       const contact = row.original.contacts
       if (!contact || (!contact.first_name && !contact.last_name)) return <div className="text-muted-foreground">—</div>
       const fullName = `${contact.first_name || ""} ${contact.last_name || ""}`.trim()
-      return <div className="text-sm text-muted-foreground">{fullName || "—"}</div>
+      return (
+        <Link 
+          href={`/workspace/person/${contact.id}`}
+          className="inline-flex items-center gap-1 group cursor-pointer"
+        >
+          <Badge 
+            variant="blue" 
+            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+          >
+            {fullName || "—"}
+          </Badge>
+          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
+        </Link>
+      )
     },
     accessorKey: "assigned_to_contact_id",
     meta: {

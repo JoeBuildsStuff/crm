@@ -35,6 +35,8 @@ import { Label } from "@/components/ui/label";
 import { Company } from '../_lib/validations';
 import { Separator } from "@/components/ui/separator";
 
+import Tiptap from "@/components/tiptap/tiptap";
+
 export interface PersonFormProps {
     /**
      * Initial first name value
@@ -244,7 +246,6 @@ export default function PersonForm({
     const [newCompanyName, setNewCompanyName] = useState("");
     const [newCompanyDescription, setNewCompanyDescription] = useState("");
     const [description, setDescription] = useState(initialDescription);
-    const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
     const [linkedin, setLinkedin] = useState(initialLinkedin);
     const [jobTitle, setJobTitle] = useState(initialJobTitle);
     const [namePopoverOpen, setNamePopoverOpen] = useState(false);
@@ -470,6 +471,7 @@ export default function PersonForm({
 
     return (
         <div className={cn("@container flex flex-col gap-2 text-foreground w-full", className)}>
+            {/* Name */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <IdCard className="size-4 shrink-0" strokeWidth={1.5} />
@@ -512,6 +514,8 @@ export default function PersonForm({
                 </Popover>
                 </div>
             </div>
+
+            {/* Email */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <AtSign className="size-4 shrink-0" strokeWidth={1.5} />
@@ -569,46 +573,8 @@ export default function PersonForm({
                 </Popover>
                 </div>
             </div>
-    
-            <div className="flex items-start gap-2 justify-between">
-                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
-                    <Pilcrow className="size-4 shrink-0" strokeWidth={1.5} />
-                    <span className="whitespace-nowrap @max-sm:hidden">Description</span>
-                </div>
-                <textarea 
-                    className={cn(
-                        "w-full min-w-0 text-left hover:bg-secondary rounded-md py-2 px-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring min-h-10",
-                        !isDescriptionFocused && "overflow-hidden whitespace-nowrap text-ellipsis"
-                    )}
-                    placeholder="Set Description..."
-                    rows={1}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    onFocus={(e) => {
-                        setIsDescriptionFocused(true);
-                        setTimeout(() => {
-                            const target = e.target as HTMLTextAreaElement;
-                            target.style.height = 'auto';
-                            target.style.height = Math.max(36, target.scrollHeight) + 'px';
-                        }, 0);
-                    }}
-                    onBlur={(e) => {
-                        setIsDescriptionFocused(false);
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = '36px';
-                    }}
-                    onInput={(e) => {
-                        if (isDescriptionFocused) {
-                            const target = e.target as HTMLTextAreaElement;
-                            target.style.height = 'auto';
-                            target.style.height = Math.max(36, target.scrollHeight) + 'px';
-                        }
-                    }}
-                    style={{
-                        height: isDescriptionFocused ? 'auto' : '36px'
-                    }}
-                />
-            </div>
+
+            {/* Company */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <Building2 className="size-4 shrink-0" strokeWidth={1.5} />
@@ -630,6 +596,8 @@ export default function PersonForm({
                     navigationRoute="/workspace/company"
                 />
             </div>
+
+            {/* Title */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <BriefcaseBusiness className="size-4 shrink-0" strokeWidth={1.5} />
@@ -642,6 +610,8 @@ export default function PersonForm({
                     onChange={(e) => setJobTitle(e.target.value)}
                 />
             </div>
+
+            {/* Phone */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <Phone className="size-4 shrink-0" strokeWidth={1.5} />
@@ -696,6 +666,8 @@ export default function PersonForm({
                 </Popover>
                 </div>
             </div>
+
+            {/* Location */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <MapPin className="size-4 shrink-0" strokeWidth={1.5} />
@@ -738,6 +710,8 @@ export default function PersonForm({
                 </Popover>
                 </div>
             </div>
+
+            {/* LinkedIn */}
             <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
                     <div className="border border-muted-foreground rounded size-4 flex items-center justify-center">
@@ -771,6 +745,22 @@ export default function PersonForm({
                     </Popover>
                 </div>
             </div>
+
+            {/* Description */}
+            <div className="flex flex-col items-start gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                    <Pilcrow className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Notes</span>
+                </div>
+                <div className="w-full">
+                    <Tiptap 
+                        content={description}
+                        onChange={(content) => setDescription(content)}
+                    /> 
+                </div>
+            </div>
+
+            {/* Add Company Dialog */}
             <Dialog open={addCompanyDialogOpen} onOpenChange={setAddCompanyDialogOpen}>
                 <DialogContent className="sm:max-w-[425px]" onKeyDown={handleAddCompanyDialogKeyDown}>
                     <DialogHeader>

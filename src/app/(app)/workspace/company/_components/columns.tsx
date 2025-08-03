@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { Company } from "../_lib/validations"
 import { Building2, Pilcrow, Calendar, ArrowUpRight } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 export const columns: ColumnDef<Company>[] = [
@@ -48,11 +49,15 @@ export const columns: ColumnDef<Company>[] = [
         <div className="flex items-center gap-2">
           <Link 
             href={`/workspace/company/${row.original.id}`}
-            className="hover:underline cursor-pointer"
+            className="inline-flex items-center gap-1 group cursor-pointer"
           >
-            <span className="flex items-center gap-1">
-              {name || "Untitled Company"} <ArrowUpRight className="size-4" strokeWidth={1.5} />
-            </span>
+            <Badge 
+              variant="outline" 
+              className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+            >
+              {name || "Untitled Company"}
+            </Badge>
+            <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-muted-foreground" />
           </Link>
         </div>
       )
