@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, Calendar, User, Milestone, CalendarIcon, Type } from "lucide-react";
+import { Calendar, User, Milestone, CalendarIcon, Type } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -411,10 +411,10 @@ export default function TaskForm({
 
             {/* Description */}
             <div className="flex items-start gap-2 justify-between">
-                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                {/* <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
                     <ClipboardList className="size-4 shrink-0" strokeWidth={1.5} />
                     <span className="whitespace-nowrap @max-sm:hidden">Description</span>
-                </div>
+                </div> */}
                 <div className="w-full">
                     <Tiptap 
                         content={description}

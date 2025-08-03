@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import PhoneInputComponent from "@/components/ui/input-phone";
-import { AtSign, BriefcaseBusiness, Building2, GripVertical, IdCard, MapPin, Phone, Pilcrow, Plus, X } from "lucide-react";
+import { AtSign, BriefcaseBusiness, Building2, GripVertical, IdCard, MapPin, Phone, Plus, X } from "lucide-react";
 import { formatPhoneNumber } from "react-phone-number-input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState, useEffect, forwardRef, useRef } from "react";
@@ -748,10 +748,10 @@ export default function PersonForm({
 
             {/* Description */}
             <div className="flex flex-col items-start gap-2 justify-between">
-                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                {/* <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
                     <Pilcrow className="size-4 shrink-0" strokeWidth={1.5} />
                     <span className="whitespace-nowrap @max-sm:hidden">Notes</span>
-                </div>
+                </div> */}
                 <div className="w-full">
                     <Tiptap 
                         content={description}

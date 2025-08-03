@@ -19,28 +19,45 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { AuthButton } from "@/components/auth-button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { useState } from "react"
+import { ContactAddForm } from "@/app/(app)/workspace/person/_components/form-wrapper"
+import { MeetingAddForm } from "@/app/(app)/workspace/meeting/_components/form-wrapper"
+import { CompanyAddForm } from "@/app/(app)/workspace/company/_components/form-wrapper"
+import { TaskAddForm } from "@/app/(app)/workspace/task/_components/form-wrapper"
+import { NoteAddForm } from "@/app/(app)/workspace/note/_components/form-wrapper"
+import { createPerson } from "@/app/(app)/workspace/person/_lib/actions"
+import { createMeeting } from "@/app/(app)/workspace/meeting/_lib/actions"
+import { createCompany } from "@/app/(app)/workspace/company/_lib/actions"
+import { createTask } from "@/app/(app)/workspace/task/_lib/actions"
+import { createNote } from "@/app/(app)/workspace/note/_lib/actions"
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const [isContactSheetOpen, setIsContactSheetOpen] = useState(false)
+  const [isMeetingSheetOpen, setIsMeetingSheetOpen] = useState(false)
+  const [isCompanySheetOpen, setIsCompanySheetOpen] = useState(false)
+  const [isTaskSheetOpen, setIsTaskSheetOpen] = useState(false)
+  const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false)
 
   const handleCreateMeeting = () => {
-    console.log("Create meeting clicked")
+    setIsMeetingSheetOpen(true)
   }
 
   const handleCreateContact = () => {
-    console.log("Create contact clicked")
+    setIsContactSheetOpen(true)
   }
 
   const handleCreateCompany = () => {
-    console.log("Create company clicked")
+    setIsCompanySheetOpen(true)
   }
 
   const handleCreateTask = () => {
-    console.log("Create task clicked")
+    setIsTaskSheetOpen(true)
   }
 
   const handleCreateNote = () => {
-    console.log("Create note clicked")
+    setIsNoteSheetOpen(true)
   }
 
   const handleCreateDiagram = () => {
@@ -144,6 +161,96 @@ export function AppSidebar() {
           <AuthButton />
         </SidebarFooter>
       </Sidebar>
+
+      {/* Contact Creation Sheet */}
+      <Sheet open={isContactSheetOpen} onOpenChange={setIsContactSheetOpen}>
+        <SheetContent className="flex flex-col sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Add New Contact</SheetTitle>
+            <SheetDescription>Add a new contact to your CRM.</SheetDescription>
+          </SheetHeader>
+          
+          <div className="flex-1 overflow-hidden">
+            <ContactAddForm
+              onSuccess={() => setIsContactSheetOpen(false)}
+              onCancel={() => setIsContactSheetOpen(false)}
+              createAction={createPerson}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Meeting Creation Sheet */}
+      <Sheet open={isMeetingSheetOpen} onOpenChange={setIsMeetingSheetOpen}>
+        <SheetContent className="flex flex-col sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Add New Meeting</SheetTitle>
+            <SheetDescription>Add a new meeting to your CRM.</SheetDescription>
+          </SheetHeader>
+          
+          <div className="flex-1 overflow-hidden">
+            <MeetingAddForm
+              onSuccess={() => setIsMeetingSheetOpen(false)}
+              onCancel={() => setIsMeetingSheetOpen(false)}
+              createAction={createMeeting}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Company Creation Sheet */}
+      <Sheet open={isCompanySheetOpen} onOpenChange={setIsCompanySheetOpen}>
+        <SheetContent className="flex flex-col sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Add New Company</SheetTitle>
+            <SheetDescription>Add a new company to your CRM.</SheetDescription>
+          </SheetHeader>
+          
+          <div className="flex-1 overflow-hidden">
+            <CompanyAddForm
+              onSuccess={() => setIsCompanySheetOpen(false)}
+              onCancel={() => setIsCompanySheetOpen(false)}
+              createAction={createCompany}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Task Creation Sheet */}
+      <Sheet open={isTaskSheetOpen} onOpenChange={setIsTaskSheetOpen}>
+        <SheetContent className="flex flex-col sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Add New Task</SheetTitle>
+            <SheetDescription>Add a new task to your CRM.</SheetDescription>
+          </SheetHeader>
+          
+          <div className="flex-1 overflow-hidden">
+            <TaskAddForm
+              onSuccess={() => setIsTaskSheetOpen(false)}
+              onCancel={() => setIsTaskSheetOpen(false)}
+              createAction={createTask}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Note Creation Sheet */}
+      <Sheet open={isNoteSheetOpen} onOpenChange={setIsNoteSheetOpen}>
+        <SheetContent className="flex flex-col sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Add New Note</SheetTitle>
+            <SheetDescription>Add a new note to your CRM.</SheetDescription>
+          </SheetHeader>
+          
+          <div className="flex-1 overflow-hidden">
+            <NoteAddForm
+              onSuccess={() => setIsNoteSheetOpen(false)}
+              onCancel={() => setIsNoteSheetOpen(false)}
+              createAction={createNote}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   )
 }
