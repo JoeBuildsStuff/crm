@@ -1,7 +1,8 @@
 "use client";
 
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
@@ -72,6 +73,14 @@ export interface SelectSearchableProps {
      * Callback when popover open state changes (controlled)
      */
     onOpenChange?: (open: boolean) => void;
+    /**
+     * Whether to make the badge clickable to navigate to the record
+     */
+    allowBadgeNavigation?: boolean;
+    /**
+     * The route prefix for navigation (e.g., "/workspace/person" for person records)
+     */
+    navigationRoute?: string;
 }
 
 export default function SelectSearchable({
@@ -88,9 +97,12 @@ export default function SelectSearchable({
     createText = "Add Option",
     onCreateClick,
     open,
-    onOpenChange
+    onOpenChange,
+    allowBadgeNavigation = false,
+    navigationRoute
 }: SelectSearchableProps) {
     const [internalOpen, setInternalOpen] = useState(false);
+    const router = useRouter();
     
     const isOpen = open !== undefined ? open : internalOpen;
     const setIsOpen = onOpenChange || setInternalOpen;
@@ -116,6 +128,14 @@ export default function SelectSearchable({
         setIsOpen(false);
     };
 
+    const handleBadgeClick = (e: React.MouseEvent) => {
+        if (allowBadgeNavigation && navigationRoute && selectedOption) {
+            e.preventDefault();
+            e.stopPropagation();
+            router.push(`${navigationRoute}/${selectedOption.id}`);
+        }
+    };
+
     return (
         <div className={cn("w-full min-w-0", className)}>
             <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -125,9 +145,26 @@ export default function SelectSearchable({
                 )}>
                     {selectedOption ? (
                         showBadge ? (
-                            <Badge variant={badgeVariant} className="text-sm">
-                                {selectedOption.label}
-                            </Badge>
+                            allowBadgeNavigation && navigationRoute ? (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-auto p-0 hover:bg-transparent"
+                                    onClick={handleBadgeClick}
+                                >
+                                    <Badge 
+                                        variant={badgeVariant} 
+                                        className="text-sm cursor-pointer hover:bg-primary/10"
+                                    >
+                                        {selectedOption.label}
+                                        <ArrowUpRight className="size-4 shrink-0" />
+                                    </Badge>
+                                </Button>
+                            ) : (
+                                <Badge variant={badgeVariant} className="text-sm">
+                                    {selectedOption.label}
+                                </Badge>
+                            )
                         ) : (
                             selectedOption.label
                         )

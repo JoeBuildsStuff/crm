@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Timer, Users, Type, Pilcrow, CheckCircle, CalendarIcon } from "lucide-react";
+import { Clock, Timer, Users, Type, CheckCircle, CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -401,10 +401,10 @@ export default function MeetingForm({
 
             {/* Description Section */}
             <div className="flex items-start gap-2 justify-between">
-                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                {/* <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
                     <Pilcrow className="size-4 shrink-0" strokeWidth={1.5} />
                     <span className="whitespace-nowrap @max-sm:hidden">Description</span>
-                </div>
+                </div> */}
                 <div className="w-full">
                     <Tiptap 
                         content={description}

@@ -40,6 +40,7 @@ export default async function Page({ params }: { params: Promise<{ taskId: strin
     <div className="flex flex-col gap-4 p-1">
       <TaskForm 
         initialData={{
+          title: task.title || "",
           description: task.description || "",
           status: task.status || "TO_DO",
           due_date: task.due_date || "",

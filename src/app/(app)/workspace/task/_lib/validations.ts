@@ -5,8 +5,9 @@ export type Task = {
   id: string
   created_at?: string | null
   updated_at?: string | null
-  meeting_id: string
-  description: string
+  meeting_id?: string
+  title?: string
+  description?: string
   due_date?: string | null
   status?: string | null
   assigned_to_contact_id?: string | null
@@ -19,6 +20,7 @@ export type TaskWithRelations = Task & {
 
 // Form-specific types (for your React component)
 export type TaskFormData = {
+  title: string
   description: string
   due_date: string | null
   status: string | null
@@ -40,6 +42,7 @@ export type TaskUpdate = Partial<TaskInsert>
 
 // Utility types for the component
 export type TaskData = {
+  title: string
   description: string
   due_date: string | null
   status: string | null

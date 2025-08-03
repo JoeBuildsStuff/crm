@@ -626,6 +626,8 @@ export default function PersonForm({
                     allowCreate={true}
                     createText="Add Company"
                     onCreateClick={() => setAddCompanyDialogOpen(true)}
+                    allowBadgeNavigation={true}
+                    navigationRoute="/workspace/company"
                 />
             </div>
             <div className="flex items-center gap-2 justify-between">

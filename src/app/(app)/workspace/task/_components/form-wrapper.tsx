@@ -17,6 +17,7 @@ type MeetingForTask = Pick<Meeting, "id" | "title">
 // Helper function to transform form data to database format
 function transformFormDataToTask(formData: TaskFormData): Partial<Task> {
   return {
+    title: formData.title,
     description: formData.description,
     status: formData.status || null,
     due_date: formData.due_date || null,
@@ -206,6 +207,7 @@ export function TaskEditForm({
       <div className="flex-1 overflow-y-auto p-4">
         <TaskForm
           initialData={{
+            title: data.title || "",
             description: data.description || "",
             due_date: data.due_date || "",
             status: data.status || "",
@@ -331,6 +333,7 @@ export function TaskMultiEditForm({
           onChange={handleFormDataChange}
           // Start with empty values for multi edit
           initialData={{
+            title: "",
             description: "",
             due_date: "",
             status: "",

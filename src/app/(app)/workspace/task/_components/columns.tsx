@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { TaskWithRelations } from "../_lib/validations"
 import { Badge } from "@/components/ui/badge"
-import {Calendar, User, GitBranch, Milestone, Pilcrow, ArrowUpRight } from "lucide-react"
+import {Calendar, User, GitBranch, Milestone, Pilcrow, ArrowUpRight, Type } from "lucide-react"
 import Link from "next/link"
 
 export const columns: ColumnDef<TaskWithRelations>[] = [
@@ -35,6 +35,37 @@ export const columns: ColumnDef<TaskWithRelations>[] = [
     },
   },
   {
+    accessorKey: "title",
+    header: ({ column }) => (
+      <DataTableColumnHeader 
+        column={column} 
+        title="Title" 
+        icon={<Type className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+      />
+    ),
+    cell: ({ row }) => {
+      const title = row.getValue("title") as string
+      return (
+        <div className="flex items-center gap-2">
+          <Link 
+            href={`/workspace/task/${row.original.id}`}
+            className="hover:underline cursor-pointer"
+          >
+            <span className="flex items-center gap-1">
+              {title || "Untitled Task"} <ArrowUpRight className="size-4" strokeWidth={1.5} />
+            </span>
+          </Link>
+        </div>
+      )
+    },
+    meta: {
+      label: "Title",
+      variant: "text",
+      placeholder: "Enter task title...",
+    },
+    enableColumnFilter: true,
+  },
+  {
     accessorKey: "description",
     header: ({ column }) => (
       <DataTableColumnHeader 
@@ -47,14 +78,9 @@ export const columns: ColumnDef<TaskWithRelations>[] = [
       const description = row.getValue("description") as string
       return (
         <div className="flex items-center gap-2">
-          <Link 
-            href={`/workspace/task/${row.original.id}`}
-            className="hover:underline cursor-pointer"
-          >
-            <span className="flex items-center gap-1">
-              {description || "Untitled Task"} <ArrowUpRight className="size-4" strokeWidth={1.5} />
-            </span>
-          </Link>
+          <span className="text-sm text-muted-foreground">
+            {description || "No description"}
+          </span>
         </div>
       )
     },

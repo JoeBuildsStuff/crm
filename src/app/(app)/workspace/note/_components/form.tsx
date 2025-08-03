@@ -312,6 +312,8 @@ export default function NoteForm({
                     allowCreate={true}
                     createText="Add Person"
                     onCreateClick={() => setAddPersonDialogOpen(true)}
+                    allowBadgeNavigation={true}
+                    navigationRoute="/workspace/person"
                 />
             </div>
             <div className="flex items-center gap-2">
@@ -331,6 +333,8 @@ export default function NoteForm({
                     allowCreate={true}
                     createText="Add Meeting"
                     onCreateClick={handleOpenMeetingDialog}
+                    allowBadgeNavigation={true}
+                    navigationRoute="/workspace/meeting"
                 />
             </div>
             <div className="flex items-start gap-2 mt-2">
