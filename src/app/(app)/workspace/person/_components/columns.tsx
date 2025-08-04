@@ -299,7 +299,22 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
       // Extract username from LinkedIn URL
       const match = linkedin.match(/linkedin\.com\/in\/([^\/\?]+)/)
       if (match) {
-        return <Badge variant="blue" className="text-sm font-normal">@{match[1]}</Badge>
+        return (
+          <a 
+            href={linkedin} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 group cursor-pointer"
+          >
+            <Badge 
+              variant="blue" 
+              className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+            >
+              @{match[1]}
+            </Badge>
+            <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
+          </a>
+        )
       }
       
       return (
@@ -307,9 +322,15 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
           href={linkedin} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 text-sm"
+          className="inline-flex items-center gap-1 group cursor-pointer"
         >
-          {linkedin}
+          <Badge 
+            variant="outline" 
+            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
+          >
+            {linkedin}
+          </Badge>
+          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
         </a>
       )
     },

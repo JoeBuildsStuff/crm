@@ -377,7 +377,7 @@ export default function TaskForm({
                     searchPlaceholder="Search contacts..."
                     emptyText="No contact found."
                     showBadge={true}
-                    badgeVariant="outline"
+                    badgeVariant="blue"
                     allowCreate={true}
                     createText="Add Person"
                     onCreateClick={() => setAddPersonDialogOpen(true)}
@@ -400,7 +400,7 @@ export default function TaskForm({
                     searchPlaceholder="Search meetings..."
                     emptyText="No meeting found."
                     showBadge={true}
-                    badgeVariant="outline"
+                    badgeVariant="green"
                     allowCreate={true}
                     createText="Add Meeting"
                     onCreateClick={handleOpenMeetingDialog}

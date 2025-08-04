@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import PhoneInputComponent from "@/components/ui/input-phone";
-import { AtSign, BriefcaseBusiness, Building2, GripVertical, IdCard, MapPin, Phone, Plus, X } from "lucide-react";
+import { AtSign, BriefcaseBusiness, Building2, GripVertical, IdCard, MapPin, Phone, Plus, X, ArrowUpRight } from "lucide-react";
 import { formatPhoneNumber } from "react-phone-number-input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState, useEffect, forwardRef, useRef } from "react";
@@ -312,11 +312,41 @@ export default function PersonForm({
         // Extract username from LinkedIn URL
         const match = linkedin.match(/linkedin\.com\/in\/([^\/\?]+)/);
         if (match) {
-            return <Badge variant="blue" className="text-sm">@{match[1]}</Badge>;
+            return (
+                <a 
+                    href={linkedin} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 group cursor-pointer"
+                >
+                    <Badge 
+                        variant="blue" 
+                        className="text-sm transition-all duration-200 group-hover:pr-6"
+                    >
+                        @{match[1]}
+                    </Badge>
+                    <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
+                </a>
+            );
         }
         
         // If it's not a full URL, just display as is
-        return linkedin;
+        return (
+            <a 
+                href={linkedin} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 group cursor-pointer"
+            >
+                <Badge 
+                    variant="outline" 
+                    className="text-sm transition-all duration-200 group-hover:pr-6"
+                >
+                    {linkedin}
+                </Badge>
+                <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
+            </a>
+        );
     };
 
     const getDisplayLocation = () => {
