@@ -1,6 +1,6 @@
 import { ChatMessage } from "@/types/chat";
 import { Button } from "../ui/button";
-import { CopyIcon, Pencil, RotateCcw } from "lucide-react";
+import { CopyIcon, Pencil, RotateCcw, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useChatStore } from "@/lib/chat/chat-store";
 import { useChat } from "@/hooks/use-chat";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ export default function ChatMessageActions({ message, onEdit }: ChatMessageActio
   return (
     <TooltipProvider>
       <div className="flex">
+
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
@@ -47,23 +48,45 @@ export default function ChatMessageActions({ message, onEdit }: ChatMessageActio
           </TooltipContent>
         </Tooltip>
         
-        {/* Show Retry for assistant messages */}
+        {/* Show Thumbs Up/Down and Retry for assistant messages */}
         {message.role === 'assistant' && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="p-2 m-0 h-fit w-fit text-muted-foreground hover:text-primary">
+                  <ThumbsUp className="size-4 shrink-0" strokeWidth={1.5}/>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center" sideOffset={4} className="border border-border text-secondary-foreground bg-secondary">
+                Thumb Up
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="p-2 m-0 h-fit w-fit text-muted-foreground hover:text-primary">
+                  <ThumbsDown className="size-4 shrink-0" strokeWidth={1.5}/>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center" sideOffset={4} className="border border-border text-secondary-foreground bg-secondary">
+                Thumb Down
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
                 variant="ghost" 
                 size="icon" 
                 className="p-2 m-0 h-fit w-fit text-muted-foreground hover:text-primary"
                 onClick={handleRetry}
-              >
-                <RotateCcw className="size-4 shrink-0" strokeWidth={1.5}/>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="center" sideOffset={4} className="border border-border text-secondary-foreground bg-secondary">
-              Retry
-            </TooltipContent>
-          </Tooltip>
+                >
+                  <RotateCcw className="size-4 shrink-0" strokeWidth={1.5}/>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center" sideOffset={4} className="border border-border text-secondary-foreground bg-secondary">
+                Retry
+              </TooltipContent>
+            </Tooltip>
+          </>
         )}
         
         {/* Show Edit for user messages */}

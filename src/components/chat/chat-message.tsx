@@ -1,13 +1,12 @@
 'use client'
 
 import { formatDistanceToNow } from 'date-fns'
-import { ChevronDown, CopyIcon, DraftingCompass, Loader2 } from 'lucide-react'
+import { ChevronDown, CopyIcon, DraftingCompass, Loader2, Check, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { ChatMessage as ChatMessageType } from '@/types/chat'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import ChatMessageActions from './chat-message-actions'
 import { Button } from '@/components/ui/button'
@@ -16,6 +15,7 @@ import { toast } from 'sonner'
 import { formatToolCallArguments, formatToolCallResult } from '@/lib/chat/utils'
 import { useState } from 'react'
 import { useChatStore } from '@/lib/chat/chat-store'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 // Import highlight.js styles
 import 'highlight.js/styles/github-dark.css'
@@ -179,32 +179,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {/* Message bubble or editing textarea */}
         {isEditing && isUser ? (
           <div className={cn(
-            "rounded-lg px-3 py-2 text-sm"
+            "rounded-lg px-3 py-2 text-sm",
+            "bg-muted text-foreground"
           )}>
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="shadow-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-none p-0 bg-transparent resize-none"
+              className="rounded-lg px-0 py-0 text-sm shadow-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-none bg-transparent resize-none min-h-[1.5rem] leading-relaxed"
               placeholder="Edit your message..."
               autoFocus
+              style={{ backgroundColor: 'transparent' }}
             />
-            <div className="flex gap-2 items-center justify-end">
-            <Button
-                size="sm"
-                onClick={handleEditCancel}
-                variant="secondary"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleEditSave}
-                variant="secondary"
-              >
-                Send
-              </Button>
-            </div>
           </div>
         ) : (
           <div className={cn(
@@ -214,8 +200,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
               "bg-muted text-foreground",
             ],
             !isUser && !isSystem && [
-              "bg-muted text-foreground",
-              "rounded-bl-sm"
+              // "bg-muted text-foreground",
+    
             ],
             isSystem && [
               "bg-muted/50 text-muted-foreground text-xs",
@@ -263,22 +249,51 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 </ReactMarkdown>
               </div>
             )}
+            
           </div>
         )}
 
-        {/* Only show actions when not editing */}
+        {/* Show actions outside message bubble for all messages when not editing */}
         {!isEditing && <ChatMessageActions message={message} onEdit={handleEdit} />}
 
-        {/* Function result indicator */}
-        {message.functionResult && (
-          <Badge
-            variant={message.functionResult.success ? "green" : "red"}
-            className="mt-1"
-          >
-            {message.functionResult.success ? '✓ Action completed' : '✗ Action failed'}
-          </Badge>
+        {/* Show save/cancel buttons outside message bubble when editing */}
+        {isEditing && isUser && (
+          <TooltipProvider>
+            <div className="flex">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    onClick={handleEditCancel}
+                    variant="ghost"
+                    className="p-2 m-0 h-fit w-fit text-muted-foreground hover:text-primary"
+                  >
+                    <X className="size-4 shrink-0" strokeWidth={1.5}/>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="center" sideOffset={4} className="border border-border text-secondary-foreground bg-secondary">
+                  Cancel
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    onClick={handleEditSave}
+                    variant="ghost"
+                    className="p-2 m-0 h-fit w-fit text-muted-foreground hover:text-primary"
+                  >
+                    <Check className="size-4 shrink-0" strokeWidth={1.5}/>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="center" sideOffset={4} className="border border-border text-secondary-foreground bg-secondary">
+                  Save
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         )}
-
 
       </div>
     </div>
