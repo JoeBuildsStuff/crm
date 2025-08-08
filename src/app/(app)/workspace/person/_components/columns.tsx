@@ -192,18 +192,13 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
       const company = row.original.company
       if (!company) return <div className="text-muted-foreground">—</div>
       return (
-        <Link 
+        <Badge 
+          variant="outline" 
+          className="text-sm font-normal"
           href={`/workspace/company/${company.id}`}
-          className="inline-flex items-center gap-1 group cursor-pointer"
         >
-          <Badge 
-            variant="outline" 
-            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
-          >
-            {company.name}
-          </Badge>
-          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-muted-foreground" />
-        </Link>
+          {company.name}
+        </Badge>
       )
     },
     meta: {
@@ -300,38 +295,26 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
       const match = linkedin.match(/linkedin\.com\/in\/([^\/\?]+)/)
       if (match) {
         return (
-          <a 
-            href={linkedin} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 group cursor-pointer"
+          <Badge 
+            variant="blue" 
+            className="text-sm font-normal"
+            href={linkedin}
+            external
           >
-            <Badge 
-              variant="blue" 
-              className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
-            >
-              @{match[1]}
-            </Badge>
-            <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
-          </a>
+            @{match[1]}
+          </Badge>
         )
       }
       
       return (
-        <a 
-          href={linkedin} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 group cursor-pointer"
+        <Badge 
+          variant="outline" 
+          className="text-sm font-normal"
+          href={linkedin}
+          external
         >
-          <Badge 
-            variant="outline" 
-            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
-          >
-            {linkedin}
-          </Badge>
-          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
-        </a>
+          {linkedin}
+        </Badge>
       )
     },
     meta: {

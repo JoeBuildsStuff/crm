@@ -1,8 +1,7 @@
 "use client";
 
-import { Check, Plus, ArrowUpRight } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
@@ -102,7 +101,6 @@ export default function SelectSearchable({
     navigationRoute
 }: SelectSearchableProps) {
     const [internalOpen, setInternalOpen] = useState(false);
-    const router = useRouter();
     
     const isOpen = open !== undefined ? open : internalOpen;
     const setIsOpen = onOpenChange || setInternalOpen;
@@ -128,49 +126,7 @@ export default function SelectSearchable({
         setIsOpen(false);
     };
 
-    const handleBadgeClick = (e: React.MouseEvent) => {
-        if (allowBadgeNavigation && navigationRoute && selectedOption) {
-            e.preventDefault();
-            e.stopPropagation();
-            router.push(`${navigationRoute}/${selectedOption.id}`);
-        }
-    };
 
-
-    // TODO We need to make a badge that is a link and has an arrow that expands when hovered
-    const getArrowColorClass = (variant: string) => {
-        switch (variant) {
-            case "blue":
-                return "text-blue-600 dark:text-blue-400";
-            case "green":
-                return "text-green-600 dark:text-green-400";
-            case "red":
-                return "text-red-600 dark:text-red-400";
-            case "yellow":
-                return "text-yellow-600 dark:text-yellow-400";
-            case "orange":
-                return "text-orange-600 dark:text-orange-400";
-            case "amber":
-                return "text-amber-600 dark:text-amber-400";
-            case "indigo":
-                return "text-indigo-600 dark:text-indigo-400";
-            case "purple":
-                return "text-purple-600 dark:text-purple-400";
-            case "pink":
-                return "text-pink-600 dark:text-pink-400";
-            case "gray":
-                return "text-gray-600 dark:text-gray-400";
-            case "destructive":
-                return "text-destructive";
-            case "secondary":
-                return "text-secondary-foreground";
-            case "default":
-                return "text-primary-foreground";
-            case "outline":
-            default:
-                return "text-muted-foreground";
-        }
-    };
 
     return (
         <div className={cn("w-full min-w-0", className)}>
@@ -181,26 +137,14 @@ export default function SelectSearchable({
                 )}>
                     {selectedOption ? (
                         showBadge ? (
-                            allowBadgeNavigation && navigationRoute ? (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-auto p-0 hover:bg-transparent group -ml-2"
-                                    onClick={handleBadgeClick}
-                                >
-                                    <Badge 
-                                        variant={badgeVariant} 
-                                        className="text-sm cursor-pointer transition-all duration-200 group-hover:pr-6"
-                                    >
-                                        {selectedOption.label}
-                                    </Badge>
-                                    <ArrowUpRight className={`size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 ${getArrowColorClass(badgeVariant)}`} />
-                                </Button>
-                            ) : (
-                                <Badge variant={badgeVariant} className="text-sm">
-                                    {selectedOption.label}
-                                </Badge>
-                            )
+                            <Badge 
+                                variant={badgeVariant}
+                                className="text-sm"
+                                href={allowBadgeNavigation && navigationRoute ? `${navigationRoute}/${selectedOption.id}` : undefined}
+                                showIcon={allowBadgeNavigation && !!navigationRoute}
+                            >
+                                {selectedOption.label}
+                            </Badge>
                         ) : (
                             selectedOption.label
                         )

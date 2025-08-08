@@ -147,18 +147,13 @@ export const columns: ColumnDef<TaskWithRelations>[] = [
       const meeting = row.original.meetings
       if (!meeting?.title) return <div className="text-muted-foreground">—</div>
       return (
-        <Link 
+        <Badge 
+          variant="green" 
+          className="text-sm font-normal"
           href={`/workspace/meeting/${meeting.id}`}
-          className="inline-flex items-center gap-1 group cursor-pointer"
         >
-          <Badge 
-            variant="green" 
-            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
-          >
-            {meeting.title}
-          </Badge>
-          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-green-600 dark:text-green-400" />
-        </Link>
+          {meeting.title}
+        </Badge>
       )
     },
     accessorKey: "meeting_id",
@@ -177,18 +172,13 @@ export const columns: ColumnDef<TaskWithRelations>[] = [
       if (!contact || (!contact.first_name && !contact.last_name)) return <div className="text-muted-foreground">—</div>
       const fullName = `${contact.first_name || ""} ${contact.last_name || ""}`.trim()
       return (
-        <Link 
+        <Badge 
+          variant="blue" 
+          className="text-sm font-normal"
           href={`/workspace/person/${contact.id}`}
-          className="inline-flex items-center gap-1 group cursor-pointer"
         >
-          <Badge 
-            variant="blue" 
-            className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
-          >
-            {fullName || "—"}
-          </Badge>
-          <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
-        </Link>
+          {fullName || "—"}
+        </Badge>
       )
     },
     accessorKey: "assigned_to_contact_id",

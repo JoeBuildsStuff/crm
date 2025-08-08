@@ -206,19 +206,14 @@ export const columns: ColumnDef<MeetingWithRelations>[] = [
             
             if (contactId) {
               return (
-                <Link 
+                <Badge 
                   key={attendee.id}
+                  variant="blue" 
+                  className="text-sm font-normal"
                   href={`/workspace/person/${contactId}`}
-                  className="inline-flex items-center gap-1 group cursor-pointer"
                 >
-                  <Badge 
-                    variant="blue" 
-                    className="text-sm font-normal transition-all duration-200 group-hover:pr-6"
-                  >
-                    {displayName}
-                  </Badge>
-                  <ArrowUpRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -ml-7 text-blue-600 dark:text-blue-400" />
-                </Link>
+                  {displayName}
+                </Badge>
               )
             } else {
               return (
