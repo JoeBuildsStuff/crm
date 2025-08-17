@@ -4,10 +4,9 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { MeetingWithRelations } from "../_lib/validations"
-import { Calendar, CheckCircle, CircleX, Circle, PlayCircle, Timer, Pilcrow, Type, Users, ArrowUpRight } from "lucide-react"
+import { Calendar, CheckCircle, CircleX, Circle, PlayCircle, Timer, Pilcrow, Type, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
-import Link from "next/link"
 
 export const columns: ColumnDef<MeetingWithRelations>[] = [
   {
@@ -47,16 +46,14 @@ export const columns: ColumnDef<MeetingWithRelations>[] = [
     cell: ({ row }) => {
       const title = row.getValue("title") as string
       return (
-        <div className="flex items-center gap-2">
-          <Link 
-            href={`/workspace/meeting/${row.original.id}`}
-            className="hover:underline cursor-pointer"
-          >
-            <span className="flex items-center gap-1">
-              {title || "Untitled Meeting"} <ArrowUpRight className="size-4" strokeWidth={1.5} />
-            </span>
-          </Link>
-        </div>
+        <Badge 
+        key={row.original.id}
+        variant="green" 
+        className="text-sm font-normal"
+        href={`/workspace/meeting/${row.original.id}`}
+      >
+        {title || "Untitled Meeting"}
+      </Badge>
       )
     },
     meta: {

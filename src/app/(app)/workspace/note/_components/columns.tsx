@@ -4,8 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { NoteWithRelations } from "../_lib/validations"
-import { User, ArrowUpRight, Type, Pilcrow, Calendar } from "lucide-react"
-import Link from "next/link"
+import { User, Type, Pilcrow, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 export const columns: ColumnDef<NoteWithRelations>[] = [
@@ -47,14 +46,14 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
       const title = row.getValue("title") as string
       return (
         <div className="flex items-center gap-2">
-          <Link 
+          <Badge 
+            key={row.original.id}
+            variant="indigo" 
+            className="text-sm font-normal"
             href={`/workspace/note/${row.original.id}`}
-            className="hover:underline cursor-pointer"
           >
-            <span className="flex items-center gap-1">
-              {title || "Untitled Note"} <ArrowUpRight className="size-4" strokeWidth={1.5} />
-            </span>
-          </Link>
+            {title || "Untitled Note"}
+          </Badge>
         </div>
       )
     },
