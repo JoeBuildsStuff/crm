@@ -116,6 +116,10 @@ npm test
 npm run lint
 ```
 
+## Implementation Guides
+
+- Workspace table CRUD pattern: [`docs/DataTable-Implementation.md`](docs/DataTable-Implementation.md)
+
 ## Environment Variables
 
 Required environment variables:
